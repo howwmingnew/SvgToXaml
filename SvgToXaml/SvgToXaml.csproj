@@ -45,6 +45,9 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HandyControl">
+      <HintPath>..\packages\HandyControl.3.4.0\lib\net462\HandyControl.dll</HintPath>
+    </Reference>
     <Reference Include="ICSharpCode.AvalonEdit">
       <HintPath>..\packages\AvalonEdit.5.0.2\lib\Net40\ICSharpCode.AvalonEdit.dll</HintPath>
     </Reference>
@@ -76,6 +79,7 @@
     <Compile Include="DetailWindow.xaml.cs">
       <DependentUpon>DetailWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Infrastructure\FolderPicker.cs" />
     <Compile Include="Infrastructure\InvertableBooleanToVisibilityConverter.cs" />
     <Compile Include="Infrastructure\HConsoleHelper.cs" />
     <Compile Include="Infrastructure\DispatcherExtensions.cs" />
@@ -99,6 +103,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Themes\CustomStyles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

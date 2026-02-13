@@ -96,9 +96,9 @@ namespace SvgToXaml.ViewModels
 
         private void OpenFolderExecute()
         {
-            var folderDialog = new FolderBrowserDialog { Description = "Open Folder", SelectedPath = CurrentDir, ShowNewFolderButton = false };
-            if (folderDialog.ShowDialog() == DialogResult.OK)
-                CurrentDir = folderDialog.SelectedPath;
+            var selectedPath = FolderPicker.Show("選擇資料夾", CurrentDir);
+            if (selectedPath != null)
+                CurrentDir = selectedPath;
         }
 
         private void OpenFileExecute()
