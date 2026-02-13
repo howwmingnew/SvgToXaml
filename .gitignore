@@ -103,3 +103,6 @@ Tempeverything-claude-code/
 
 # Claude Code
 .claude/settings.local.json
+
+# VS Code
+.vscode/
