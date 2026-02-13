@@ -12,6 +12,7 @@ using System.Windows.Threading;
 using SvgConverter;
 using SvgToXaml.Command;
 using SvgToXaml.Infrastructure;
+using SvgToXaml.Properties;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
@@ -82,6 +83,7 @@ namespace SvgToXaml.ViewModels
             ExportDirCommand = new DelegateCommand(ExportDirExecute);
             InfoCommand = new DelegateCommand(InfoExecute);
             ToggleBackgroundCommand = new DelegateCommand(ToggleBackgroundExecute);
+            ToggleLanguageCommand = new DelegateCommand(ToggleLanguageExecute);
 
             _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
             _debounceTimer.Tick += (s, e) =>
@@ -91,12 +93,12 @@ namespace SvgToXaml.ViewModels
             };
 
             ContextMenuCommands = new ObservableCollection<Tuple<object, ICommand>>();
-            ContextMenuCommands.Add(new Tuple<object, ICommand>("Open Explorer", new DelegateCommand<string>(OpenExplorerExecute)));
+            ContextMenuCommands.Add(new Tuple<object, ICommand>(LanguageManager.GetString("S.Menu.OpenExplorer"), new DelegateCommand<string>(OpenExplorerExecute)));
         }
 
         private void OpenFolderExecute()
         {
-            var selectedPath = FolderPicker.Show("選擇資料夾", CurrentDir);
+            var selectedPath = FolderPicker.Show(LanguageManager.GetString("S.Dialog.SelectFolder"), CurrentDir);
             if (selectedPath != null)
                 CurrentDir = selectedPath;
         }
@@ -260,6 +262,7 @@ namespace SvgToXaml.ViewModels
         public ICommand ExportDirCommand { get; set; }
         public ICommand InfoCommand { get; set; }
         public ICommand ToggleBackgroundCommand { get; set; }
+        public ICommand ToggleLanguageCommand { get; set; }
 
         public PreviewBackground PreviewBackground
         {
@@ -293,12 +296,14 @@ namespace SvgToXaml.ViewModels
             {
                 switch (_previewBackground)
                 {
-                    case PreviewBackground.LightGray: return "淺灰";
-                    case PreviewBackground.Checkerboard: return "棋盤";
-                    default: return "深灰";
+                    case PreviewBackground.LightGray: return LanguageManager.GetString("S.Bg.Light");
+                    case PreviewBackground.Checkerboard: return LanguageManager.GetString("S.Bg.Checker");
+                    default: return LanguageManager.GetString("S.Bg.Dark");
                 }
             }
         }
+
+        public string LanguageLabel => LanguageManager.CurrentLanguage == "en" ? "EN" : "中";
 
         private void ToggleBackgroundExecute()
         {
@@ -314,6 +319,13 @@ namespace SvgToXaml.ViewModels
                     PreviewBackground = PreviewBackground.DarkGray;
                     break;
             }
+        }
+
+        private void ToggleLanguageExecute()
+        {
+            LanguageManager.ToggleLanguage();
+            OnPropertyChanged(nameof(LanguageLabel));
+            OnPropertyChanged(nameof(BackgroundLabel));
         }
 
         public ObservableCollection<Tuple<object, ICommand>> ContextMenuCommands { get; set; }

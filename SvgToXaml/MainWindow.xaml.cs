@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Animation;
+using SvgToXaml.Infrastructure;
 using SvgToXaml.Properties;
 using SvgToXaml.ViewModels;
 
@@ -15,6 +16,8 @@ namespace SvgToXaml
     {
         public MainWindow()
         {
+            LanguageManager.Initialize();
+
             InitializeComponent();
 
             var workArea = SystemParameters.WorkArea;

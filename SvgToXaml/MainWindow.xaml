@@ -54,11 +54,19 @@
                 <!-- Right-side controls -->
                 <Button
                     Margin="3,0"
+                    Command="{Binding ToggleLanguageCommand}"
+                    Content="{Binding LanguageLabel}"
+                    DockPanel.Dock="Right"
+                    Style="{StaticResource ToolBarButtonStyle}"
+                    ToolTip="{DynamicResource S.Tooltip.ToggleLang}" />
+                <Rectangle DockPanel.Dock="Right" Style="{StaticResource ToolBarSeparatorStyle}" />
+                <Button
+                    Margin="3,0"
                     Command="{Binding ToggleBackgroundCommand}"
                     Content="{Binding BackgroundLabel}"
                     DockPanel.Dock="Right"
                     Style="{StaticResource ToolBarButtonStyle}"
-                    ToolTip="切換預覽背景（深灰 / 淺灰 / 棋盤格）" />
+                    ToolTip="{DynamicResource S.Tooltip.ToggleBg}" />
                 <Slider
                     x:Name="Slider"
                     Width="110"
@@ -70,7 +78,7 @@
                     Minimum="16"
                     Orientation="Horizontal"
                     SmallChange="2"
-                    ToolTip="調整圖示大小"
+                    ToolTip="{DynamicResource S.Tooltip.IconSize}"
                     Value="96" />
                 <Rectangle DockPanel.Dock="Right" Style="{StaticResource ToolBarSeparatorStyle}" />
                 <Button
@@ -78,7 +86,7 @@
                     Command="{Binding ExportDirCommand}"
                     DockPanel.Dock="Right"
                     Style="{StaticResource ToolBarButtonStyle}"
-                    ToolTip="匯出所有 SVG 為 XAML">
+                    ToolTip="{DynamicResource S.Tooltip.Export}">
                     <Image Width="18" Height="18" Source="{StaticResource SaveDrawingImage}" />
                 </Button>
                 <Button
@@ -86,7 +94,7 @@
                     Command="{Binding OpenFolderCommand}"
                     DockPanel.Dock="Right"
                     Style="{StaticResource ToolBarButtonStyle}"
-                    ToolTip="開啟資料夾">
+                    ToolTip="{DynamicResource S.Tooltip.OpenFolder}">
                     <Image Width="18" Height="18" Source="{StaticResource FolderOpenDrawingImage}" />
                 </Button>
                 <Rectangle DockPanel.Dock="Right" Style="{StaticResource ToolBarSeparatorStyle}" />
@@ -217,7 +225,7 @@
                                 FontWeight="Bold"
                                 Foreground="Orange"
                                 Text="DI"
-                                ToolTip="複雜 SVG：含漸層或特殊效果，將輸出 DrawingImage 格式"
+                                ToolTip="{DynamicResource S.Tooltip.ComplexSvg}"
                                 Visibility="{Binding IsComplexSvg, Converter={StaticResource BooleanToVisibilityConverter}}" />
                             <!-- Filename label -->
                             <Border Grid.Row="1"
@@ -238,15 +246,15 @@
                                 <ContextMenu Style="{StaticResource DarkContextMenuStyle}">
                                     <MenuItem
                                         Command="{Binding CopyXamlCommand}"
-                                        Header="複製 XAML"
+                                        Header="{DynamicResource S.Menu.CopyXaml}"
                                         Style="{StaticResource DarkMenuItemStyle}" />
                                     <MenuItem
                                         Command="{Binding OpenDetailCommand}"
-                                        Header="檢視詳細"
+                                        Header="{DynamicResource S.Menu.ViewDetail}"
                                         Style="{StaticResource DarkMenuItemStyle}" />
                                     <MenuItem
                                         Command="{Binding OpenFileCommand}"
-                                        Header="開啟檔案"
+                                        Header="{DynamicResource S.Menu.OpenFile}"
                                         Style="{StaticResource DarkMenuItemStyle}" />
                                 </ContextMenu>
                             </Grid.ContextMenu>
@@ -274,7 +282,7 @@
                 <TextBlock
                     FontSize="14"
                     Foreground="White"
-                    Text="已複製到剪貼簿" />
+                    Text="{DynamicResource S.Toast.Copied}" />
             </Border>
 
             <!-- Status Bar -->
@@ -287,7 +295,7 @@
                         Command="{Binding OpenFileCommand}"
                         DockPanel.Dock="Right"
                         Style="{StaticResource StatusBarButtonStyle}"
-                        ToolTip="開啟檔案">
+                        ToolTip="{DynamicResource S.Tooltip.OpenFile}">
                         <TextBlock FontSize="11" Foreground="White" Text="..." />
                     </Button>
                     <TextBox

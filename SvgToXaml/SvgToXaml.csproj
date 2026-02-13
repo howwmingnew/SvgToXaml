@@ -80,6 +80,7 @@
       <DependentUpon>DetailWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Infrastructure\FolderPicker.cs" />
+    <Compile Include="Infrastructure\LanguageManager.cs" />
     <Compile Include="Infrastructure\InvertableBooleanToVisibilityConverter.cs" />
     <Compile Include="Infrastructure\HConsoleHelper.cs" />
     <Compile Include="Infrastructure\DispatcherExtensions.cs" />
@@ -103,6 +104,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Localization\Strings.en.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Localization\Strings.zh-TW.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

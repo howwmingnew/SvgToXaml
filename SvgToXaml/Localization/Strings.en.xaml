@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- Toolbar Tooltips -->
+    <sys:String x:Key="S.Tooltip.ToggleBg">Toggle preview background (Dark / Light / Checker)</sys:String>
+    <sys:String x:Key="S.Tooltip.IconSize">Adjust icon size</sys:String>
+    <sys:String x:Key="S.Tooltip.Export">Export all SVGs to XAML</sys:String>
+    <sys:String x:Key="S.Tooltip.OpenFolder">Open folder</sys:String>
+    <sys:String x:Key="S.Tooltip.OpenFile">Open file</sys:String>
+    <sys:String x:Key="S.Tooltip.ComplexSvg">Complex SVG: contains gradients or effects, will output DrawingImage format</sys:String>
+    <sys:String x:Key="S.Tooltip.ToggleLang">Toggle language (EN / 中文)</sys:String>
+
+    <!-- Context Menu -->
+    <sys:String x:Key="S.Menu.CopyXaml">Copy XAML</sys:String>
+    <sys:String x:Key="S.Menu.ViewDetail">View Detail</sys:String>
+    <sys:String x:Key="S.Menu.OpenFile">Open File</sys:String>
+    <sys:String x:Key="S.Menu.OpenExplorer">Open Explorer</sys:String>
+
+    <!-- Toast -->
+    <sys:String x:Key="S.Toast.Copied">Copied to clipboard</sys:String>
+
+    <!-- Detail Window -->
+    <sys:String x:Key="S.Tab.Preview">Preview</sys:String>
+    <sys:String x:Key="S.Label.DesignSize">Design Size</sys:String>
+    <sys:String x:Key="S.Label.ActualSize">Actual Size</sys:String>
+    <sys:String x:Key="S.Label.StretchMode">Stretch Mode</sys:String>
+    <sys:String x:Key="S.Button.CopyClipboard">Copy to Clipboard</sys:String>
+
+    <!-- Background Labels -->
+    <sys:String x:Key="S.Bg.Dark">Dark</sys:String>
+    <sys:String x:Key="S.Bg.Light">Light</sys:String>
+    <sys:String x:Key="S.Bg.Checker">Checker</sys:String>
+
+    <!-- Dialogs -->
+    <sys:String x:Key="S.Dialog.SelectFolder">Select Folder</sys:String>
+
+</ResourceDictionary>

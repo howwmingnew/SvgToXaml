@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- Toolbar Tooltips -->
+    <sys:String x:Key="S.Tooltip.ToggleBg">切換預覽背景（深灰 / 淺灰 / 棋盤格）</sys:String>
+    <sys:String x:Key="S.Tooltip.IconSize">調整圖示大小</sys:String>
+    <sys:String x:Key="S.Tooltip.Export">匯出所有 SVG 為 XAML</sys:String>
+    <sys:String x:Key="S.Tooltip.OpenFolder">開啟資料夾</sys:String>
+    <sys:String x:Key="S.Tooltip.OpenFile">開啟檔案</sys:String>
+    <sys:String x:Key="S.Tooltip.ComplexSvg">複雜 SVG：含漸層或特殊效果，將輸出 DrawingImage 格式</sys:String>
+    <sys:String x:Key="S.Tooltip.ToggleLang">切換語言（EN / 中文）</sys:String>
+
+    <!-- Context Menu -->
+    <sys:String x:Key="S.Menu.CopyXaml">複製 XAML</sys:String>
+    <sys:String x:Key="S.Menu.ViewDetail">檢視詳細</sys:String>
+    <sys:String x:Key="S.Menu.OpenFile">開啟檔案</sys:String>
+    <sys:String x:Key="S.Menu.OpenExplorer">開啟檔案總管</sys:String>
+
+    <!-- Toast -->
+    <sys:String x:Key="S.Toast.Copied">已複製到剪貼簿</sys:String>
+
+    <!-- Detail Window -->
+    <sys:String x:Key="S.Tab.Preview">預覽</sys:String>
+    <sys:String x:Key="S.Label.DesignSize">設計尺寸</sys:String>
+    <sys:String x:Key="S.Label.ActualSize">實際尺寸</sys:String>
+    <sys:String x:Key="S.Label.StretchMode">縮放模式</sys:String>
+    <sys:String x:Key="S.Button.CopyClipboard">複製到剪貼簿</sys:String>
+
+    <!-- Background Labels -->
+    <sys:String x:Key="S.Bg.Dark">深灰</sys:String>
+    <sys:String x:Key="S.Bg.Light">淺灰</sys:String>
+    <sys:String x:Key="S.Bg.Checker">棋盤</sys:String>
+
+    <!-- Dialogs -->
+    <sys:String x:Key="S.Dialog.SelectFolder">選擇資料夾</sys:String>
+
+</ResourceDictionary>

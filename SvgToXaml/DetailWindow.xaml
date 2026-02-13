@@ -15,7 +15,7 @@
         d:DataContext="{x:Static viewModels:SvgImageViewModel.DesignInstance}">
     <Grid Margin="8">
         <TabControl TabStripPlacement="Bottom" Background="Transparent" BorderThickness="0">
-            <TabItem Header="預覽">
+            <TabItem Header="{DynamicResource S.Tab.Preview}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -39,7 +39,7 @@
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Text="設計尺寸" TextAlignment="Center" VerticalAlignment="Center" Foreground="#FF888888" FontSize="10"/>
+                            <TextBlock Text="{DynamicResource S.Label.DesignSize}" TextAlignment="Center" VerticalAlignment="Center" Foreground="#FF888888" FontSize="10"/>
                             <TextBlock Grid.Row="1" TextAlignment="Center" VerticalAlignment="Center" Foreground="#FFCCCCCC" FontSize="11" Text="{Binding SvgDesignInfo}"/>
                         </Grid>
                         <Grid HorizontalAlignment="Center" Width="120">
@@ -47,7 +47,7 @@
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Text="實際尺寸" TextAlignment="Center" VerticalAlignment="Center" Foreground="#FF888888" FontSize="10"/>
+                            <TextBlock Text="{DynamicResource S.Label.ActualSize}" TextAlignment="Center" VerticalAlignment="Center" Foreground="#FF888888" FontSize="10"/>
                             <TextBlock Grid.Row="1" TextAlignment="Center" VerticalAlignment="Center" Foreground="#FFCCCCCC" FontSize="11">
                                 <Run Text="{Binding ElementName=Image,Path=ActualWidth,Mode=OneWay,StringFormat={}{0:0.0}}"/>
                                 <Run Text="x"/>
@@ -59,7 +59,7 @@
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Text="縮放模式" Foreground="#FF3794FF" TextDecorations="Underline" TextAlignment="Center" VerticalAlignment="Center" MouseLeftButtonDown="ToggleStretchClicked" Cursor="Hand" FontSize="10"/>
+                            <TextBlock Text="{DynamicResource S.Label.StretchMode}" Foreground="#FF3794FF" TextDecorations="Underline" TextAlignment="Center" VerticalAlignment="Center" MouseLeftButtonDown="ToggleStretchClicked" Cursor="Hand" FontSize="10"/>
                             <TextBlock Grid.Row="1" TextAlignment="Center" VerticalAlignment="Center" Foreground="#FFCCCCCC" FontSize="11" Text="{Binding ElementName=Image, Path=Stretch}"/>
                         </Grid>
                     </StackPanel>
@@ -73,7 +73,7 @@
                     </Grid.RowDefinitions>
                     <textViewer:XmlViewer Grid.Row="0" x:Name="XmlViewer" FontFamily="Consolas" FontSize="10pt" Text="{Binding Xaml}" />
                     <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" Margin="4">
-                        <Button Click="CopyToClipboardClick" Padding="12,4" Content="複製到剪貼簿" />
+                        <Button Click="CopyToClipboardClick" Padding="12,4" Content="{DynamicResource S.Button.CopyClipboard}" />
                     </StackPanel>
                 </Grid>
             </TabItem>

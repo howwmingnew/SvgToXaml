@@ -152,21 +152,58 @@
 
     <Style x:Key="DarkContextMenuStyle" TargetType="ContextMenu">
         <Setter Property="Background" Value="#FF2D2D30" />
-        <Setter Property="BorderBrush" Value="#FF555555" />
         <Setter Property="Foreground" Value="#FFCCCCCC" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="0,4" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="HasDropShadow" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border x:Name="ContextMenuBorder"
+                            Background="#FF2D2D30"
+                            BorderBrush="#FF555555"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="0,4"
+                            SnapsToDevicePixels="True">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="12" ShadowDepth="4" Opacity="0.5" Color="Black" />
+                        </Border.Effect>
+                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <Style x:Key="DarkMenuItemStyle" TargetType="MenuItem">
         <Setter Property="Foreground" Value="#FFCCCCCC" />
-        <Setter Property="Padding" Value="10,6" />
-        <Style.Triggers>
-            <Trigger Property="IsHighlighted" Value="True">
-                <Setter Property="Background" Value="#FF3F3F46" />
-                <Setter Property="Foreground" Value="White" />
-            </Trigger>
-        </Style.Triggers>
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="ItemBorder"
+                            Background="Transparent"
+                            CornerRadius="4"
+                            Margin="4,1"
+                            Padding="12,7"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter ContentSource="Header"
+                                          TextBlock.Foreground="{TemplateBinding Foreground}"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="ItemBorder" Property="Background" Value="#FF3E3E42" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="#FF656565" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- ========== DARK SCROLLBAR ========== -->

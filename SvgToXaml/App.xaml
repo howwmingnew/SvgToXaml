@@ -9,6 +9,7 @@
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDark.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml" />
                 <ResourceDictionary Source="Themes/CustomStyles.xaml" />
+                <ResourceDictionary Source="Localization/Strings.en.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <infrastructure:InvertableBooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         </ResourceDictionary>
