@@ -274,12 +274,47 @@ namespace SvgConverter
             return dict;
         }
 
+        // 用來標記注入的 viewBox 背景矩形的顏色（轉換後會改成 Transparent）
+        private const string ViewBoxMarkerFill = "#F0F1F2";
+        private static readonly Color ViewBoxMarkerColor = Color.FromRgb(0xF0, 0xF1, 0xF2);
+
         private static DrawingGroup ConvertFileToDrawingGroup(string filepath, WpfDrawingSettings wpfDrawingSettings)
         {
             var dg = SvgFileToWpfObject(filepath, wpfDrawingSettings);
             SetSizeToGeometries(dg);
             RemoveObjectNames(dg);
+            MakeViewBoxRectTransparent(dg);
             return dg;
+        }
+
+        /// <summary>
+        /// 轉換後找到注入的 viewBox 灰色矩形，把 Brush 改成 Transparent
+        /// </summary>
+        private static void MakeViewBoxRectTransparent(DrawingGroup dg)
+        {
+            MakeViewBoxRectTransparentRecursive(dg);
+        }
+
+        private static bool MakeViewBoxRectTransparentRecursive(DrawingGroup dg)
+        {
+            foreach (var child in dg.Children)
+            {
+                if (child is GeometryDrawing gd)
+                {
+                    var brush = gd.Brush as SolidColorBrush;
+                    if (brush != null && brush.Color == ViewBoxMarkerColor)
+                    {
+                        gd.Brush = Brushes.Transparent;
+                        return true;
+                    }
+                }
+                if (child is DrawingGroup subDg)
+                {
+                    if (MakeViewBoxRectTransparentRecursive(subDg))
+                        return true;
+                }
+            }
+            return false;
         }
 
         internal static void SetSizeToGeometries(DrawingGroup dg)
@@ -369,6 +404,7 @@ namespace SvgConverter
 
             //workaround: error when Id starts with a number
             FixIds(doc.Root); //id="3d-view-icon" -> id="_3d-view-icon"
+            InjectViewBoxRect(doc.Root);
             using (var ms = new MemoryStream())
             {
                 doc.Save(ms);
@@ -397,6 +433,54 @@ namespace SvgConverter
 
                 attr.Value = attr.Value.Replace("/", "_");
             }
+        }
+
+        /// <summary>
+        /// 在 SVG 最底層注入一個滿版矩形（模擬 Illustrator 手動加底圖的做法）
+        /// 這樣 SharpVectors 轉換時會保留完整的 viewBox 範圍
+        /// 轉換後由 MakeViewBoxRectTransparent 把顏色改成 Transparent
+        /// </summary>
+        private static void InjectViewBoxRect(XElement root)
+        {
+            if (root == null) return;
+
+            double x = 0, y = 0, w = 0, h = 0;
+            var viewBoxAttr = root.Attribute("viewBox")?.Value;
+
+            if (viewBoxAttr != null)
+            {
+                var parts = viewBoxAttr.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length != 4 ||
+                    !double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out x) ||
+                    !double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out y) ||
+                    !double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out w) ||
+                    !double.TryParse(parts[3], NumberStyles.Float, CultureInfo.InvariantCulture, out h))
+                    return;
+            }
+            else
+            {
+                // fallback：用 width/height 屬性
+                var widthAttr = root.Attribute("width")?.Value;
+                var heightAttr = root.Attribute("height")?.Value;
+                if (widthAttr == null || heightAttr == null) return;
+
+                var wStr = Regex.Replace(widthAttr, @"[^0-9.\-]", "");
+                var hStr = Regex.Replace(heightAttr, @"[^0-9.\-]", "");
+                if (!double.TryParse(wStr, NumberStyles.Float, CultureInfo.InvariantCulture, out w) ||
+                    !double.TryParse(hStr, NumberStyles.Float, CultureInfo.InvariantCulture, out h))
+                    return;
+            }
+
+            if (w <= 0 || h <= 0) return;
+
+            var svgNs = root.GetDefaultNamespace();
+            root.AddFirst(new XElement(svgNs + "rect",
+                new XAttribute("x", x.ToString(CultureInfo.InvariantCulture)),
+                new XAttribute("y", y.ToString(CultureInfo.InvariantCulture)),
+                new XAttribute("width", w.ToString(CultureInfo.InvariantCulture)),
+                new XAttribute("height", h.ToString(CultureInfo.InvariantCulture)),
+                new XAttribute("fill", ViewBoxMarkerFill)
+            ));
         }
 
 
