@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -9,11 +10,14 @@ namespace SvgToXaml.ViewModels
 {
     public abstract class ImageBaseViewModel : ViewModelBase
     {
+        public static event Action XamlCopied;
+
         protected ImageBaseViewModel(string filepath)
         {
             Filepath = filepath;
             OpenDetailCommand = new DelegateCommand(OpenDetailExecute);
             OpenFileCommand = new DelegateCommand(OpenFileExecute);
+            CopyXamlCommand = new DelegateCommand(CopyXamlExecute, () => HasXaml);
         }
 
         public string Filepath { get; }
@@ -21,6 +25,7 @@ namespace SvgToXaml.ViewModels
         public ImageSource PreviewSource => GetImageSource();
         public ICommand OpenDetailCommand { get; set; }
         public ICommand OpenFileCommand { get; set; }
+        public ICommand CopyXamlCommand { get; set; }
         protected abstract ImageSource GetImageSource();
         public abstract bool HasXaml { get; }
         public abstract bool HasSvg { get; }
@@ -42,6 +47,15 @@ namespace SvgToXaml.ViewModels
         private void OpenFileExecute()
         {
             Process.Start(Filepath);
+        }
+
+        protected virtual void CopyXamlExecute()
+        {
+        }
+
+        protected static void RaiseXamlCopied()
+        {
+            XamlCopied?.Invoke();
         }
 
         protected abstract string GetSvgDesignInfo();

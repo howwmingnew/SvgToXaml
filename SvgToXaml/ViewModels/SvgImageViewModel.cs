@@ -50,6 +50,21 @@ namespace SvgToXaml.ViewModels
             return null;
         }
 
+        protected override void CopyXamlExecute()
+        {
+            var xaml = Xaml;
+            if (string.IsNullOrEmpty(xaml)) return;
+            try
+            {
+                Clipboard.SetText(xaml);
+                RaiseXamlCopied();
+            }
+            catch
+            {
+                // 剪貼簿被其他程式鎖定時忽略
+            }
+        }
+
         public override bool HasXaml => true;
         public override bool HasSvg => true;
 
