@@ -21,6 +21,30 @@ namespace SvgConverter
         DrawingGroup,
         DrawingImage
     }
+
+    public class GeometryEntry
+    {
+        public string Data { get; set; }
+        public string GeometryType { get; set; }  // "inline", "EllipseGeometry", "RectangleGeometry"
+        public Dictionary<string, string> GeometryAttrs { get; set; } = new Dictionary<string, string>();
+
+        public string Fill { get; set; }
+        public string Stroke { get; set; }
+        public string StrokeThickness { get; set; }
+        public string StrokeStartLineCap { get; set; }
+        public string StrokeEndLineCap { get; set; }
+        public string StrokeLineJoin { get; set; }
+        public string StrokeMiterLimit { get; set; }
+    }
+
+    public class GeometryResult
+    {
+        public List<GeometryEntry> Entries { get; set; } = new List<GeometryEntry>();
+        public bool IsComplex { get; set; }
+        public double Width { get; set; } = 20;
+        public double Height { get; set; } = 20;
+    }
+
     public static class ConverterLogic
     {
         private const char CPrefixSeparator = '_';
@@ -315,6 +339,245 @@ namespace SvgConverter
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// 從 DrawingGroup 提取 Geometry + Pen/Brush 資訊，產生 Viewbox+Path 格式
+        /// </summary>
+        public static GeometryResult ExtractGeometryData(DrawingGroup dg)
+        {
+            var xamlUntidy = WpfObjToXaml(dg, false);
+            var doc = XDocument.Parse(xamlUntidy);
+            BeautifyDrawingElement(doc.Root, null);
+
+            // 從 ClipGeometry 解析尺寸
+            double width = 20, height = 20;
+            foreach (var dgElem in doc.Root.DescendantsAndSelf(NsDef + "DrawingGroup"))
+            {
+                var clip = dgElem.Attribute("ClipGeometry");
+                if (clip != null)
+                {
+                    ParseClipGeometrySize(clip.Value, out width, out height);
+                    break;
+                }
+            }
+
+            var geoDrawings = doc.Root.DescendantsAndSelf(NsDef + "GeometryDrawing").ToList();
+            var entries = new List<GeometryEntry>();
+            bool isComplex = false;
+
+            foreach (var gd in geoDrawings)
+            {
+                var entry = ParseGeometryDrawing(gd, ref isComplex);
+                if (entry != null)
+                    entries.Add(entry);
+            }
+
+            // 檢查是否含漸層 brush
+            if (doc.Root.Descendants().Any(e =>
+                e.Name.LocalName == "LinearGradientBrush" ||
+                e.Name.LocalName == "RadialGradientBrush"))
+                isComplex = true;
+
+            return new GeometryResult
+            {
+                Entries = entries,
+                IsComplex = isComplex,
+                Width = width,
+                Height = height
+            };
+        }
+
+        /// <summary>
+        /// 從 ClipGeometry 字串解析寬高，例如 "M0,0 V20 H20 V0 H0 Z"
+        /// </summary>
+        private static void ParseClipGeometrySize(string clipGeo, out double width, out double height)
+        {
+            width = 20; height = 20;
+            var vMatch = Regex.Match(clipGeo, @"V([\d.]+)");
+            var hMatch = Regex.Match(clipGeo, @"H([\d.]+)");
+            if (vMatch.Success && hMatch.Success)
+            {
+                double.TryParse(hMatch.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out width);
+                double.TryParse(vMatch.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out height);
+                return;
+            }
+            var rectMatches = Regex.Matches(clipGeo, @"([\d.]+),([\d.]+)");
+            if (rectMatches.Count >= 3)
+            {
+                var xs = new List<double>();
+                var ys = new List<double>();
+                foreach (Match m in rectMatches)
+                {
+                    double x, y;
+                    if (double.TryParse(m.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out x))
+                        xs.Add(x);
+                    if (double.TryParse(m.Groups[2].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out y))
+                        ys.Add(y);
+                }
+                if (xs.Count > 0) width = xs.Max();
+                if (ys.Count > 0) height = ys.Max();
+            }
+        }
+
+        /// <summary>
+        /// 解析單一 GeometryDrawing 元素，擷取 Geometry、Brush、Pen 完整資訊
+        /// </summary>
+        private static GeometryEntry ParseGeometryDrawing(XElement gd, ref bool isComplex)
+        {
+            var entry = new GeometryEntry();
+            var brushAttr = gd.Attribute("Brush");
+
+            // 跳過 viewBox 標記矩形（Transparent）
+            if (brushAttr != null &&
+                (brushAttr.Value == "Transparent" ||
+                 brushAttr.Value.StartsWith("#00", StringComparison.OrdinalIgnoreCase)))
+                return null;
+
+            // --- 解析 Geometry ---
+            var geoAttr = gd.Attribute("Geometry");
+            if (geoAttr != null)
+            {
+                entry.Data = CleanGeometryString(geoAttr.Value);
+                entry.GeometryType = "inline";
+            }
+
+            var geoChild = gd.Elements().FirstOrDefault(e => e.Name.LocalName == "GeometryDrawing.Geometry");
+            if (geoChild != null)
+            {
+                foreach (var geo in geoChild.Elements())
+                {
+                    var geoTag = geo.Name.LocalName;
+                    if (geoTag == "EllipseGeometry")
+                    {
+                        entry.GeometryType = "EllipseGeometry";
+                        entry.GeometryAttrs = geo.Attributes().ToDictionary(a => a.Name.LocalName, a => a.Value);
+                    }
+                    else if (geoTag == "RectangleGeometry")
+                    {
+                        entry.GeometryType = "RectangleGeometry";
+                        entry.GeometryAttrs = geo.Attributes().ToDictionary(a => a.Name.LocalName, a => a.Value);
+                    }
+                    else if (geoTag == "LineGeometry")
+                    {
+                        var sp = geo.Attribute("StartPoint")?.Value ?? "0,0";
+                        var ep = geo.Attribute("EndPoint")?.Value ?? "0,0";
+                        entry.Data = string.Format("M{0} L{1}", sp, ep);
+                        entry.GeometryType = "inline";
+                    }
+                    else if (geoTag == "PathGeometry")
+                    {
+                        var figuresAttr = geo.Attribute("Figures");
+                        if (figuresAttr != null)
+                        {
+                            entry.Data = CleanGeometryString(figuresAttr.Value);
+                            entry.GeometryType = "inline";
+                        }
+                    }
+                }
+            }
+
+            // --- 解析 Brush (Fill) ---
+            if (brushAttr != null)
+                entry.Fill = brushAttr.Value;
+
+            var brushChild = gd.Elements().FirstOrDefault(e => e.Name.LocalName == "GeometryDrawing.Brush");
+            if (brushChild != null)
+            {
+                var solidBrush = brushChild.Elements().FirstOrDefault(e => e.Name.LocalName == "SolidColorBrush");
+                if (solidBrush != null)
+                    entry.Fill = solidBrush.Attribute("Color")?.Value;
+                if (brushChild.Elements().Any(e =>
+                    e.Name.LocalName == "LinearGradientBrush" ||
+                    e.Name.LocalName == "RadialGradientBrush"))
+                    isComplex = true;
+            }
+
+            // --- 解析 Pen (Stroke) ---
+            var penChild = gd.Elements().FirstOrDefault(e => e.Name.LocalName == "GeometryDrawing.Pen");
+            if (penChild != null)
+            {
+                var pen = penChild.Elements().FirstOrDefault(e => e.Name.LocalName == "Pen");
+                if (pen != null)
+                {
+                    entry.Stroke = pen.Attribute("Brush")?.Value;
+                    entry.StrokeThickness = pen.Attribute("Thickness")?.Value;
+                    entry.StrokeStartLineCap = pen.Attribute("StartLineCap")?.Value;
+                    entry.StrokeEndLineCap = pen.Attribute("EndLineCap")?.Value;
+                    entry.StrokeLineJoin = pen.Attribute("LineJoin")?.Value;
+                    entry.StrokeMiterLimit = pen.Attribute("MiterLimit")?.Value;
+                }
+            }
+
+            // 必須有 geometry 資料
+            if (entry.Data == null && entry.GeometryType == null)
+                return null;
+
+            return entry;
+        }
+
+        /// <summary>
+        /// 產生資源 key 名稱，自動偵測顏色和形狀提示
+        /// </summary>
+        public static string GenerateResourceKey(string baseName, int index, GeometryEntry entry)
+        {
+            var color = (entry.Stroke ?? entry.Fill ?? "").ToLowerInvariant();
+            var colorHint = "";
+            var colorMap = new Dictionary<string, string[]>
+            {
+                { "Red", new[] { "#ff0000", "#ffff0000", "red" } },
+                { "Green", new[] { "#00ff00", "#ff00ff00", "#00d400", "#ff00d400", "green" } },
+                { "Blue", new[] { "#198cff", "#ff198cff", "#0000ff", "#ff0000ff", "blue" } },
+                { "Yellow", new[] { "#ffff00", "#ffffff00", "yellow" } },
+                { "White", new[] { "#ffffff", "#ffffffff", "white" } },
+                { "Black", new[] { "#000000", "#ff000000", "black" } },
+            };
+            foreach (var kvp in colorMap)
+            {
+                if (kvp.Value.Any(p => string.Equals(p, color, StringComparison.OrdinalIgnoreCase)))
+                {
+                    colorHint = "_" + kvp.Key;
+                    break;
+                }
+            }
+
+            var geoHint = "";
+            if (entry.GeometryType == "EllipseGeometry")
+            {
+                geoHint = "_Circle";
+            }
+            else if (entry.Data != null)
+            {
+                var points = Regex.Matches(entry.Data, @"([\d.]+),([\d.]+)");
+                if (points.Count == 2)
+                {
+                    double x1, y1, x2, y2;
+                    if (double.TryParse(points[0].Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out x1) &&
+                        double.TryParse(points[0].Groups[2].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out y1) &&
+                        double.TryParse(points[1].Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out x2) &&
+                        double.TryParse(points[1].Groups[2].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out y2))
+                    {
+                        if (Math.Abs(x1 - x2) < 0.1) geoHint = "_VLine";
+                        else if (Math.Abs(y1 - y2) < 0.1) geoHint = "_HLine";
+                        else geoHint = "_Line";
+                    }
+                }
+            }
+
+            if (colorHint.Length > 0 || geoHint.Length > 0)
+                return baseName + colorHint + geoHint;
+            return baseName + "_Part" + (index + 1);
+        }
+
+        /// <summary>
+        /// 清理 Geometry 字串：移除 FillRule 前綴和定位用退化圖形
+        /// </summary>
+        private static string CleanGeometryString(string geo)
+        {
+            geo = geo.Trim();
+            geo = Regex.Replace(geo, @"^F[01]\s+", "");
+            geo = Regex.Replace(geo, @"M[\d.\-]+,[\d.\-]+z\s*", "");
+            return geo.Trim();
         }
 
         internal static void SetSizeToGeometries(DrawingGroup dg)

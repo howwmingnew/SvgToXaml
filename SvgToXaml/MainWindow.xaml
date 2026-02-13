@@ -139,6 +139,17 @@
                                         <MouseBinding Command="{Binding CopyXamlCommand}" Gesture="LeftDoubleClick" />
                                     </Image.InputBindings>
                                 </Image>
+                                <TextBlock
+                                    x:Name="ComplexBadge"
+                                    Margin="2"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    FontSize="10"
+                                    FontWeight="Bold"
+                                    Foreground="Orange"
+                                    Text="DI"
+                                    ToolTip="複雜 SVG：含漸層或特殊效果，將輸出 DrawingImage 格式"
+                                    Visibility="{Binding IsComplexSvg, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                 <Grid.ContextMenu>
                                     <ContextMenu>
                                         <ContextMenu.ItemsPanel>

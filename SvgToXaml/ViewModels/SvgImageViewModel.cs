@@ -52,11 +52,13 @@ namespace SvgToXaml.ViewModels
 
         protected override void CopyXamlExecute()
         {
-            var xaml = Xaml;
-            if (string.IsNullOrEmpty(xaml)) return;
+            // 一律優先複製 Geometry 格式，僅在擷取失敗時 fallback 到 DrawingImage
+            var text = GeometryData;
+            if (string.IsNullOrEmpty(text)) text = Xaml;
+            if (string.IsNullOrEmpty(text)) return;
             try
             {
-                Clipboard.SetText(xaml);
+                Clipboard.SetText(text);
                 RaiseXamlCopied();
             }
             catch
@@ -71,6 +73,10 @@ namespace SvgToXaml.ViewModels
         public string Svg => SvgData?.Svg;
 
         public string Xaml => SvgData?.Xaml;
+
+        public string GeometryData => SvgData?.GeometryData;
+
+        public bool IsComplexSvg => SvgData?.IsComplex ?? false;
 
 
         public ConvertedSvgData SvgData
