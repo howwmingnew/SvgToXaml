@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using SvgConverter;
 using SvgToXaml.Command;
 using SvgToXaml.Infrastructure;
@@ -63,10 +64,15 @@ namespace SvgToXaml.ViewModels
             return brush;
         }
 
+        private static readonly string[] WatchedExtensions =
+            { ".svg", ".svgz", ".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".gif" };
+
         private string _currentDir;
         private ObservableCollectionSafe<ImageBaseViewModel> _images;
         private ImageBaseViewModel _selectedItem;
         private PreviewBackground _previewBackground = PreviewBackground.DarkGray;
+        private FileSystemWatcher _fileWatcher;
+        private readonly DispatcherTimer _debounceTimer;
 
         public SvgImagesViewModel()
         {
@@ -76,6 +82,13 @@ namespace SvgToXaml.ViewModels
             ExportDirCommand = new DelegateCommand(ExportDirExecute);
             InfoCommand = new DelegateCommand(InfoExecute);
             ToggleBackgroundCommand = new DelegateCommand(ToggleBackgroundExecute);
+
+            _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+            _debounceTimer.Tick += (s, e) =>
+            {
+                _debounceTimer.Stop();
+                ReadImagesFromDir(_currentDir);
+            };
 
             ContextMenuCommands = new ObservableCollection<Tuple<object, ICommand>>();
             ContextMenuCommands.Add(new Tuple<object, ICommand>("Open Explorer", new DelegateCommand<string>(OpenExplorerExecute)));
@@ -223,7 +236,10 @@ namespace SvgToXaml.ViewModels
             set
             {
                 if (SetProperty(ref _currentDir, value))
+                {
                     ReadImagesFromDir(_currentDir);
+                    SetupFileWatcher(_currentDir);
+                }
             }
         }
 
@@ -301,6 +317,44 @@ namespace SvgToXaml.ViewModels
         }
 
         public ObservableCollection<Tuple<object, ICommand>> ContextMenuCommands { get; set; }
+
+        private void SetupFileWatcher(string folder)
+        {
+            if (_fileWatcher != null)
+            {
+                _fileWatcher.EnableRaisingEvents = false;
+                _fileWatcher.Dispose();
+                _fileWatcher = null;
+            }
+
+            if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+                return;
+
+            _fileWatcher = new FileSystemWatcher(folder)
+            {
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
+                IncludeSubdirectories = false
+            };
+
+            _fileWatcher.Created += OnFileChanged;
+            _fileWatcher.Deleted += OnFileChanged;
+            _fileWatcher.Renamed += OnFileChanged;
+            _fileWatcher.Changed += OnFileChanged;
+            _fileWatcher.EnableRaisingEvents = true;
+        }
+
+        private void OnFileChanged(object sender, FileSystemEventArgs e)
+        {
+            var ext = Path.GetExtension(e.FullPath)?.ToLowerInvariant();
+            if (ext == null || Array.IndexOf(WatchedExtensions, ext) < 0)
+                return;
+
+            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                _debounceTimer.Stop();
+                _debounceTimer.Start();
+            }));
+        }
 
         private void ReadImagesFromDir(string folder)
         {
