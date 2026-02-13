@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using SvgToXaml.Command;
@@ -32,7 +33,10 @@ namespace SvgToXaml.ViewModels
 
         public static void OpenDetailWindow(ImageBaseViewModel imageBaseViewModel)
         {
-            new DetailWindow { DataContext = imageBaseViewModel }.Show();
+            var window = new DetailWindow { DataContext = imageBaseViewModel };
+            if (Application.Current.MainWindow?.IsLoaded == true)
+                window.Owner = Application.Current.MainWindow;
+            window.Show();
         }
 
         private void OpenFileExecute()

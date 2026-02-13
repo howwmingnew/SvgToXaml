@@ -17,6 +17,11 @@ namespace SvgToXaml
         public MainWindow()
         {
             InitializeComponent();
+
+            var workArea = SystemParameters.WorkArea;
+            Width = workArea.Width * 0.75;
+            Height = workArea.Height * 0.75;
+
             DataContext = new SvgImagesViewModel();
             ((SvgImagesViewModel) DataContext).CurrentDir = Settings.Default.LastDir;
         }

@@ -7,9 +7,11 @@ using System.Text;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Media;
 using SvgConverter;
 using SvgToXaml.Command;
 using SvgToXaml.Infrastructure;
+using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
@@ -17,9 +19,54 @@ namespace SvgToXaml.ViewModels
 {
     public class SvgImagesViewModel : ViewModelBase
     {
+        private static readonly Brush DarkGrayBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3C3C3C"));
+        private static readonly Brush LightGrayBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D0D0D0"));
+        private static readonly Brush CheckerboardBrush = CreateCheckerboardBrush();
+
+        static SvgImagesViewModel()
+        {
+            DarkGrayBrush.Freeze();
+            LightGrayBrush.Freeze();
+            CheckerboardBrush.Freeze();
+        }
+
+        private static DrawingBrush CreateCheckerboardBrush()
+        {
+            var brush = new DrawingBrush
+            {
+                TileMode = TileMode.Tile,
+                Viewport = new Rect(0, 0, 20, 20),
+                ViewportUnits = BrushMappingMode.Absolute
+            };
+
+            var white = new GeometryDrawing(
+                Brushes.White,
+                null,
+                new RectangleGeometry(new Rect(0, 0, 20, 20)));
+
+            var gray1 = new GeometryDrawing(
+                Brushes.LightGray,
+                null,
+                new RectangleGeometry(new Rect(0, 0, 10, 10)));
+
+            var gray2 = new GeometryDrawing(
+                Brushes.LightGray,
+                null,
+                new RectangleGeometry(new Rect(10, 10, 10, 10)));
+
+            var group = new DrawingGroup();
+            group.Children.Add(white);
+            group.Children.Add(gray1);
+            group.Children.Add(gray2);
+
+            brush.Drawing = group;
+            return brush;
+        }
+
         private string _currentDir;
         private ObservableCollectionSafe<ImageBaseViewModel> _images;
         private ImageBaseViewModel _selectedItem;
+        private PreviewBackground _previewBackground = PreviewBackground.DarkGray;
 
         public SvgImagesViewModel()
         {
@@ -28,9 +75,10 @@ namespace SvgToXaml.ViewModels
             OpenFolderCommand = new DelegateCommand(OpenFolderExecute);
             ExportDirCommand = new DelegateCommand(ExportDirExecute);
             InfoCommand = new DelegateCommand(InfoExecute);
+            ToggleBackgroundCommand = new DelegateCommand(ToggleBackgroundExecute);
 
             ContextMenuCommands = new ObservableCollection<Tuple<object, ICommand>>();
-            ContextMenuCommands.Add(new Tuple<object, ICommand>("Open Explorer", new DelegateCommand<string>(OpenExplorerExecute))); 
+            ContextMenuCommands.Add(new Tuple<object, ICommand>("Open Explorer", new DelegateCommand<string>(OpenExplorerExecute)));
         }
 
         private void OpenFolderExecute()
@@ -43,7 +91,7 @@ namespace SvgToXaml.ViewModels
         private void OpenFileExecute()
         {
             var openDlg = new OpenFileDialog { CheckFileExists = true, Filter = "Svg-Files|*.svg*", Multiselect = false };
-            if (openDlg.ShowDialog().GetValueOrDefault())
+            if (openDlg.ShowDialog(Application.Current.MainWindow).GetValueOrDefault())
             {
                 ImageBaseViewModel.OpenDetailWindow(new SvgImageViewModel(openDlg.FileName));
             }
@@ -93,8 +141,9 @@ namespace SvgToXaml.ViewModels
 
         private void BuildBatchFile(string outFileName, ResKeyInfo compResKeyInfo)
         {
-            if (MessageBox.Show(outFileName + "\nhas been written\nCreate a BatchFile to automate next time?",
-                null, MessageBoxButton.YesNoCancel) == MessageBoxResult.Yes)
+            if (MessageBox.Show(Application.Current.MainWindow,
+                outFileName + "\nhas been written\nCreate a BatchFile to automate next time?",
+                "Export", MessageBoxButton.YesNoCancel) == MessageBoxResult.Yes)
             {
                 var outputname = Path.GetFileNameWithoutExtension(outFileName);
                 var outputdir = Path.GetDirectoryName(outFileName);
@@ -150,7 +199,7 @@ namespace SvgToXaml.ViewModels
 
         private void InfoExecute()
         {
-            MessageBox.Show("SvgToXaml © 2015 Bernd Klaiber\n\nPowered by\nsharpvectors.codeplex.com (Svg-Support),\nicsharpcode (AvalonEdit)", "Info");
+            MessageBox.Show(Application.Current.MainWindow, "SvgToXaml © 2015 Bernd Klaiber\n\nPowered by\nsharpvectors.codeplex.com (Svg-Support),\nicsharpcode (AvalonEdit)", "Info");
         }
         private void OpenExplorerExecute(string path)
         {
@@ -194,6 +243,62 @@ namespace SvgToXaml.ViewModels
         public ICommand OpenFileCommand { get; set; }
         public ICommand ExportDirCommand { get; set; }
         public ICommand InfoCommand { get; set; }
+        public ICommand ToggleBackgroundCommand { get; set; }
+
+        public PreviewBackground PreviewBackground
+        {
+            get { return _previewBackground; }
+            set
+            {
+                if (SetProperty(ref _previewBackground, value))
+                {
+                    OnPropertyChanged(nameof(PreviewBackgroundBrush));
+                    OnPropertyChanged(nameof(BackgroundLabel));
+                }
+            }
+        }
+
+        public Brush PreviewBackgroundBrush
+        {
+            get
+            {
+                switch (_previewBackground)
+                {
+                    case PreviewBackground.LightGray: return LightGrayBrush;
+                    case PreviewBackground.Checkerboard: return CheckerboardBrush;
+                    default: return DarkGrayBrush;
+                }
+            }
+        }
+
+        public string BackgroundLabel
+        {
+            get
+            {
+                switch (_previewBackground)
+                {
+                    case PreviewBackground.LightGray: return "淺灰";
+                    case PreviewBackground.Checkerboard: return "棋盤";
+                    default: return "深灰";
+                }
+            }
+        }
+
+        private void ToggleBackgroundExecute()
+        {
+            switch (_previewBackground)
+            {
+                case PreviewBackground.DarkGray:
+                    PreviewBackground = PreviewBackground.LightGray;
+                    break;
+                case PreviewBackground.LightGray:
+                    PreviewBackground = PreviewBackground.Checkerboard;
+                    break;
+                default:
+                    PreviewBackground = PreviewBackground.DarkGray;
+                    break;
+            }
+        }
 
         public ObservableCollection<Tuple<object, ICommand>> ContextMenuCommands { get; set; }
 

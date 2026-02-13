@@ -85,6 +85,7 @@
     <Compile Include="ViewModels\BindableBase.cs" />
     <Compile Include="ViewModels\GraphicImageViewModel.cs" />
     <Compile Include="ViewModels\ImageBaseViewModel.cs" />
+    <Compile Include="ViewModels\PreviewBackground.cs" />
     <Compile Include="ViewModels\SvgImageViewModel.cs" />
     <Compile Include="ViewModels\SvgImagesViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
