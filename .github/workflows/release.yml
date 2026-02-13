@@ -33,26 +33,11 @@ jobs:
       - name: Build Release
         run: msbuild SvgToXaml.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
 
-      - name: Prepare release artifacts
-        shell: pwsh
-        run: |
-          $out = "release-artifacts/SvgToXaml"
-          New-Item -ItemType Directory -Path $out -Force | Out-Null
-
-          # Copy main exe and all dependencies
-          $bin = "SvgToXaml/bin/Release"
-          Copy-Item "$bin/*.exe"    -Destination $out
-          Copy-Item "$bin/*.dll"    -Destination $out
-          Copy-Item "$bin/*.config" -Destination $out -ErrorAction SilentlyContinue
-
-          # Zip
-          Compress-Archive -Path $out -DestinationPath "release-artifacts/SvgToXaml.zip"
-
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: SvgToXaml
-          path: release-artifacts/SvgToXaml.zip
+          path: SvgToXaml/bin/Release/SvgToXaml.exe
 
       - name: Determine tag
         id: tag
@@ -74,10 +59,7 @@ jobs:
           body: |
             ## SvgToXaml ${{ steps.tag.outputs.TAG }}
 
-            ### 使用方式
-            1. 下載 `SvgToXaml.zip`
-            2. 解壓縮到任意資料夾
-            3. 執行 `SvgToXaml.exe`
-          files: release-artifacts/SvgToXaml.zip
+            Download `SvgToXaml.exe` and run — no installation or extraction needed.
+          files: SvgToXaml/bin/Release/SvgToXaml.exe
           draft: false
           prerelease: false
