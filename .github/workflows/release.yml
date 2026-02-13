@@ -1,0 +1,83 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g. v1.3.0)'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore SvgToXaml.sln
+
+      - name: Build Release
+        run: msbuild SvgToXaml.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
+
+      - name: Prepare release artifacts
+        shell: pwsh
+        run: |
+          $out = "release-artifacts/SvgToXaml"
+          New-Item -ItemType Directory -Path $out -Force | Out-Null
+
+          # Copy main exe and all dependencies
+          $bin = "SvgToXaml/bin/Release"
+          Copy-Item "$bin/*.exe"    -Destination $out
+          Copy-Item "$bin/*.dll"    -Destination $out
+          Copy-Item "$bin/*.config" -Destination $out -ErrorAction SilentlyContinue
+
+          # Zip
+          Compress-Archive -Path $out -DestinationPath "release-artifacts/SvgToXaml.zip"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SvgToXaml
+          path: release-artifacts/SvgToXaml.zip
+
+      - name: Determine tag
+        id: tag
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "push") {
+            $tag = "${{ github.ref_name }}"
+          } else {
+            $tag = "${{ github.event.inputs.tag_name }}"
+            if (-not $tag) { $tag = "v0.0.0-manual" }
+          }
+          echo "TAG=$tag" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.TAG }}
+          name: SvgToXaml ${{ steps.tag.outputs.TAG }}
+          body: |
+            ## SvgToXaml ${{ steps.tag.outputs.TAG }}
+
+            ### 使用方式
+            1. 下載 `SvgToXaml.zip`
+            2. 解壓縮到任意資料夾
+            3. 執行 `SvgToXaml.exe`
+          files: release-artifacts/SvgToXaml.zip
+          draft: false
+          prerelease: false
