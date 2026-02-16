@@ -7,15 +7,15 @@
         xmlns:textViewer="clr-namespace:SvgToXaml.TextViewer"
         mc:Ignorable="d"
         Title="{Binding Filename}"
-        Height="380" Width="450"
+        MinHeight="300" MinWidth="350"
         Background="#FF252526"
         FontFamily="Segoe UI"
         Foreground="#FFCCCCCC"
         WindowStartupLocation="CenterOwner"
         d:DataContext="{x:Static viewModels:SvgImageViewModel.DesignInstance}">
     <Grid Margin="8">
-        <TabControl TabStripPlacement="Bottom" Background="Transparent" BorderThickness="0">
-            <TabItem Header="{DynamicResource S.Tab.Preview}">
+        <TabControl TabStripPlacement="Bottom" Style="{StaticResource DarkTabControlStyle}">
+            <TabItem Header="{DynamicResource S.Tab.Preview}" Style="{StaticResource DarkTabItemStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -65,19 +65,19 @@
                     </StackPanel>
                 </Grid>
             </TabItem>
-            <TabItem Header="XAML" Visibility="{Binding HasXaml, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TabItem Header="XAML" Style="{StaticResource DarkTabItemStyle}" Visibility="{Binding HasXaml, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="32"/>
+                        <RowDefinition Height="40"/>
                     </Grid.RowDefinitions>
                     <textViewer:XmlViewer Grid.Row="0" x:Name="XmlViewer" FontFamily="Consolas" FontSize="10pt" Text="{Binding Xaml}" />
-                    <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" Margin="4">
-                        <Button Click="CopyToClipboardClick" Padding="12,4" Content="{DynamicResource S.Button.CopyClipboard}" />
+                    <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0">
+                        <Button Click="CopyToClipboardClick" Style="{StaticResource DarkButtonStyle}" Content="{DynamicResource S.Button.CopyClipboard}" />
                     </StackPanel>
                 </Grid>
             </TabItem>
-            <TabItem Header="SVG" Visibility="{Binding HasSvg, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TabItem Header="SVG" Style="{StaticResource DarkTabItemStyle}" Visibility="{Binding HasSvg, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <textViewer:XmlViewer FontFamily="Consolas" FontSize="10pt" Text="{Binding Svg}"/>
             </TabItem>
         </TabControl>
