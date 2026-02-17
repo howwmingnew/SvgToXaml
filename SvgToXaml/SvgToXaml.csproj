@@ -80,6 +80,9 @@
     <Compile Include="DetailWindow.xaml.cs">
       <DependentUpon>DetailWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ExportPreviewWindow.xaml.cs">
+      <DependentUpon>ExportPreviewWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Infrastructure\GitHubUpdateService.cs" />
     <Compile Include="Infrastructure\FolderPicker.cs" />
     <Compile Include="Infrastructure\LanguageManager.cs" />
@@ -98,6 +101,10 @@
     <Compile Include="ViewModels\ViewModelBase.cs" />
     <Compile Include="WrapPanel\VirtualizingWrapPanel.cs" />
     <Page Include="DetailWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ExportPreviewWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

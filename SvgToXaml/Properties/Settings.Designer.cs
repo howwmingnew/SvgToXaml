@@ -46,5 +46,17 @@ namespace SvgToXaml.Properties {
                 this["Language"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("96")]
+        public double IconSize {
+            get {
+                return ((double)(this["IconSize"]));
+            }
+            set {
+                this["IconSize"] = value;
+            }
+        }
     }
 }

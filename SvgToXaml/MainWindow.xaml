@@ -127,7 +127,7 @@
                     Orientation="Horizontal"
                     SmallChange="2"
                     ToolTip="{DynamicResource S.Tooltip.IconSize}"
-                    Value="96" />
+                    Value="{Binding IconSize}" />
                 <Rectangle DockPanel.Dock="Right" Style="{StaticResource ToolBarSeparatorStyle}" />
                 <Button
                     Margin="3,0"

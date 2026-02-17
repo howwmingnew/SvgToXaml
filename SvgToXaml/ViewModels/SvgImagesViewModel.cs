@@ -79,6 +79,7 @@ namespace SvgToXaml.ViewModels
         private bool _isUpdateAvailable;
         private string _latestVersionTag;
         private string _releasePageUrl;
+        private double _iconSize = 96;
 
         public SvgImagesViewModel()
         {
@@ -100,6 +101,11 @@ namespace SvgToXaml.ViewModels
 
             ContextMenuCommands = new ObservableCollection<Tuple<object, ICommand>>();
             ContextMenuCommands.Add(new Tuple<object, ICommand>(LanguageManager.GetString("S.Menu.OpenExplorer"), new DelegateCommand<string>(OpenExplorerExecute)));
+
+            // 從設定檔還原圖示大小
+            var savedSize = Settings.Default.IconSize;
+            if (savedSize >= 16 && savedSize <= 500)
+                _iconSize = savedSize;
 
             // 背景檢查 GitHub 更新（fire-and-forget）
             var _ = CheckForUpdateAsync();
@@ -123,43 +129,29 @@ namespace SvgToXaml.ViewModels
 
         private void ExportDirExecute()
         {
-            string outFileName = Path.GetFileNameWithoutExtension(CurrentDir) + ".xaml"; 
-            var saveDlg = new SaveFileDialog {AddExtension = true, DefaultExt = ".xaml", Filter = "Xaml-File|*.xaml", InitialDirectory = CurrentDir, FileName = outFileName};
+            string outFileName = Path.GetFileNameWithoutExtension(CurrentDir) + ".xaml";
+            var saveDlg = new SaveFileDialog
+            {
+                AddExtension = true,
+                DefaultExt = ".xaml",
+                Filter = "Xaml-File|*.xaml",
+                InitialDirectory = CurrentDir,
+                FileName = outFileName
+            };
             if (saveDlg.ShowDialog() == DialogResult.OK)
             {
-                string namePrefix = null;
-
-                bool useComponentResKeys = false;
-                string nameSpaceName = null;
-                var nameSpace = Microsoft.VisualBasic.Interaction.InputBox("Enter a NameSpace for using static ComponentResKeys (or leave empty to not use it)", "NameSpace");
-                if (!string.IsNullOrWhiteSpace(nameSpace))
-                {
-                    useComponentResKeys = true;
-                    nameSpaceName =
-                        Microsoft.VisualBasic.Interaction.InputBox(
-                            "Enter a Name of NameSpace for using static ComponentResKeys", "NamespaceName");
-                }
-                else
-                {
-                    namePrefix = Microsoft.VisualBasic.Interaction.InputBox("Enter a namePrefix (or leave empty to not use it)", "Name Prefix");
-                    if (string.IsNullOrWhiteSpace(namePrefix))
-                        namePrefix = null;
-
-                }
-
                 outFileName = Path.GetFullPath(saveDlg.FileName);
                 var resKeyInfo = new ResKeyInfo
                 {
                     XamlName = Path.GetFileNameWithoutExtension(outFileName),
-                    Prefix = namePrefix,
-                    UseComponentResKeys = useComponentResKeys,
-                    NameSpace = nameSpace,
-                    NameSpaceName = nameSpaceName,
-
                 };
-                File.WriteAllText(outFileName, ConverterLogic.SvgDirToXaml(CurrentDir, resKeyInfo, false));
+                File.WriteAllText(outFileName, ConverterLogic.SvgDirToUserControlXaml(CurrentDir, resKeyInfo, false));
 
-                BuildBatchFile(outFileName, resKeyInfo);
+                // 匯出後開啟預覽視窗
+                var previewWindow = new ExportPreviewWindow();
+                previewWindow.Owner = Application.Current.MainWindow;
+                previewWindow.LoadFromImages(Images.OfType<SvgImageViewModel>());
+                previewWindow.Show();
             }
         }
 
@@ -332,6 +324,26 @@ namespace SvgToXaml.ViewModels
         }
 
         public string UpdateTooltip => LanguageManager.GetString("S.Tooltip.Update");
+
+        public double IconSize
+        {
+            get { return _iconSize; }
+            set
+            {
+                if (SetProperty(ref _iconSize, value))
+                {
+                    try
+                    {
+                        Settings.Default.IconSize = value;
+                        Settings.Default.Save();
+                    }
+                    catch
+                    {
+                        // 設定檔無法寫入時靜默忽略
+                    }
+                }
+            }
+        }
 
         private void ToggleBackgroundExecute()
         {

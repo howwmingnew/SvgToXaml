@@ -116,6 +116,55 @@ namespace SvgConverter
             return SvgDirToXaml(folder, resKeyInfo, null, filterPixelsPerDip);
         }
 
+        /// <summary>
+        /// 將資料夾內所有 SVG 匯出為 UserControl XAML 格式：
+        /// ResourceDictionary 放圖片資源，WrapPanel 一列 20 張圖排列顯示
+        /// </summary>
+        public static string SvgDirToUserControlXaml(string folder, ResKeyInfo resKeyInfo, bool filterPixelsPerDip)
+        {
+            var resDictXaml = SvgDirToXaml(folder, resKeyInfo, filterPixelsPerDip);
+            var resDoc = XDocument.Parse(resDictXaml);
+
+            // 取得所有 DrawingImage 的 key（用於產生視覺預覽）
+            var drawingImageKeys = resDoc.Root.Elements(NsDef + "DrawingImage")
+                .Select(e => e.Attribute(Nsx + "Key")?.Value)
+                .Where(k => k != null)
+                .ToList();
+
+            const int imagesPerRow = 20;
+            const int imageSize = 40;
+            const int margin = 3;
+            var wrapWidth = imagesPerRow * (imageSize + margin * 2);
+
+            // 建構 UserControl XML
+            var userControl = new XElement(NsDef + "UserControl",
+                new XAttribute(XNamespace.Xmlns + "x", Nsx.NamespaceName),
+                new XElement(NsDef + "UserControl.Resources",
+                    new XElement(NsDef + "ResourceDictionary",
+                        resDoc.Root.Elements()
+                    )
+                ),
+                new XElement(NsDef + "ScrollViewer",
+                    new XAttribute("HorizontalScrollBarVisibility", "Auto"),
+                    new XAttribute("VerticalScrollBarVisibility", "Auto"),
+                    new XElement(NsDef + "WrapPanel",
+                        new XAttribute("Width", wrapWidth),
+                        drawingImageKeys.Select(key =>
+                            new XElement(NsDef + "Image",
+                                new XAttribute("Width", imageSize),
+                                new XAttribute("Height", imageSize),
+                                new XAttribute("Margin", margin),
+                                new XAttribute("Source", "{StaticResource " + key + "}"),
+                                new XAttribute("ToolTip", key.Replace("DrawingImage", "").TrimEnd('_'))
+                            )
+                        )
+                    )
+                )
+            );
+
+            return new XDocument(userControl).ToString();
+        }
+
         public static string SvgDirToXaml(string folder, ResKeyInfo resKeyInfo, WpfDrawingSettings wpfDrawingSettings,
             bool filterPixelsPerDip, bool handleSubFolders = false)
         {
