@@ -52,6 +52,54 @@
             Style="{StaticResource ToolBarPanelStyle}">
             <DockPanel>
                 <!-- Right-side controls -->
+                <!-- Update Button（有新版本時才顯示） -->
+                <Button
+                    Margin="3,0"
+                    Padding="8,2"
+                    Background="#FF0E639C"
+                    BorderBrush="#FF1177BB"
+                    BorderThickness="1"
+                    Command="{Binding OpenUpdatePageCommand}"
+                    Content="{Binding UpdateButtonText}"
+                    DockPanel.Dock="Right"
+                    FontSize="11"
+                    FontWeight="SemiBold"
+                    Foreground="White"
+                    ToolTip="{Binding UpdateTooltip}"
+                    Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Cursor" Value="Hand" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border
+                                            x:Name="Bd"
+                                            Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            CornerRadius="3"
+                                            Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#FF1177BB" />
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#FF0A4D7A" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Rectangle
+                    DockPanel.Dock="Right"
+                    Style="{StaticResource ToolBarSeparatorStyle}"
+                    Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Button
                     Margin="3,0"
                     Command="{Binding ToggleLanguageCommand}"

@@ -32,6 +32,10 @@
     <sys:String x:Key="S.Bg.Light">淺灰</sys:String>
     <sys:String x:Key="S.Bg.Checker">棋盤</sys:String>
 
+    <!-- Update -->
+    <sys:String x:Key="S.Update.Available">{0} 可更新</sys:String>
+    <sys:String x:Key="S.Tooltip.Update">有新版本可用 — 點擊前往下載</sys:String>
+
     <!-- Dialogs -->
     <sys:String x:Key="S.Dialog.SelectFolder">選擇資料夾</sys:String>
 

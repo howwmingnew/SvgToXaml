@@ -32,6 +32,10 @@
     <sys:String x:Key="S.Bg.Light">Light</sys:String>
     <sys:String x:Key="S.Bg.Checker">Checker</sys:String>
 
+    <!-- Update -->
+    <sys:String x:Key="S.Update.Available">{0} available</sys:String>
+    <sys:String x:Key="S.Tooltip.Update">New version available — click to download</sys:String>
+
     <!-- Dialogs -->
     <sys:String x:Key="S.Dialog.SelectFolder">Select Folder</sys:String>
 

@@ -30,6 +30,28 @@ jobs:
       - name: Restore NuGet packages
         run: nuget restore SvgToXaml.sln
 
+      - name: Patch AssemblyInfo with tag version
+        shell: pwsh
+        run: |
+          # 從 tag 取得版本號（v1.3.1 → 1.3.1）
+          if ("${{ github.event_name }}" -eq "push") {
+            $tag = "${{ github.ref_name }}"
+          } else {
+            $tag = "${{ github.event.inputs.tag_name }}"
+          }
+          if ($tag -and $tag -match '^v?(\d+\.\d+\.\d+)') {
+            $ver = $Matches[1]
+            $fourPart = "$ver.0"
+            $file = "SvgToXaml/Properties/AssemblyInfo.cs"
+            $content = Get-Content $file -Raw
+            $content = $content -replace 'AssemblyVersion\("[^"]*"\)', "AssemblyVersion(`"$fourPart`")"
+            $content = $content -replace 'AssemblyFileVersion\("[^"]*"\)', "AssemblyFileVersion(`"$fourPart`")"
+            Set-Content $file $content -NoNewline
+            Write-Host "Patched AssemblyInfo.cs to version $fourPart"
+          } else {
+            Write-Host "No valid tag — keeping default version"
+          }
+
       - name: Build Release
         run: msbuild SvgToXaml.sln /p:Configuration=Release /p:Platform="Any CPU" /v:minimal
 

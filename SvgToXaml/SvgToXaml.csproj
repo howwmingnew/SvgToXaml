@@ -52,6 +52,7 @@
       <HintPath>..\packages\AvalonEdit.5.0.2\lib\Net40\ICSharpCode.AvalonEdit.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Windows.Forms" />
@@ -79,6 +80,7 @@
     <Compile Include="DetailWindow.xaml.cs">
       <DependentUpon>DetailWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Infrastructure\GitHubUpdateService.cs" />
     <Compile Include="Infrastructure\FolderPicker.cs" />
     <Compile Include="Infrastructure\LanguageManager.cs" />
     <Compile Include="Infrastructure\InvertableBooleanToVisibilityConverter.cs" />

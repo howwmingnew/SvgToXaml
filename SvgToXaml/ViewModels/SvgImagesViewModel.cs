@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -75,6 +76,10 @@ namespace SvgToXaml.ViewModels
         private FileSystemWatcher _fileWatcher;
         private readonly DispatcherTimer _debounceTimer;
 
+        private bool _isUpdateAvailable;
+        private string _latestVersionTag;
+        private string _releasePageUrl;
+
         public SvgImagesViewModel()
         {
             _images = new ObservableCollectionSafe<ImageBaseViewModel>();
@@ -84,6 +89,7 @@ namespace SvgToXaml.ViewModels
             InfoCommand = new DelegateCommand(InfoExecute);
             ToggleBackgroundCommand = new DelegateCommand(ToggleBackgroundExecute);
             ToggleLanguageCommand = new DelegateCommand(ToggleLanguageExecute);
+            OpenUpdatePageCommand = new DelegateCommand(OpenUpdatePageExecute);
 
             _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
             _debounceTimer.Tick += (s, e) =>
@@ -94,6 +100,9 @@ namespace SvgToXaml.ViewModels
 
             ContextMenuCommands = new ObservableCollection<Tuple<object, ICommand>>();
             ContextMenuCommands.Add(new Tuple<object, ICommand>(LanguageManager.GetString("S.Menu.OpenExplorer"), new DelegateCommand<string>(OpenExplorerExecute)));
+
+            // 背景檢查 GitHub 更新（fire-and-forget）
+            var _ = CheckForUpdateAsync();
         }
 
         private void OpenFolderExecute()
@@ -263,6 +272,7 @@ namespace SvgToXaml.ViewModels
         public ICommand InfoCommand { get; set; }
         public ICommand ToggleBackgroundCommand { get; set; }
         public ICommand ToggleLanguageCommand { get; set; }
+        public ICommand OpenUpdatePageCommand { get; set; }
 
         public PreviewBackground PreviewBackground
         {
@@ -305,6 +315,24 @@ namespace SvgToXaml.ViewModels
 
         public string LanguageLabel => LanguageManager.CurrentLanguage == "en" ? "EN" : "中";
 
+        public bool IsUpdateAvailable
+        {
+            get { return _isUpdateAvailable; }
+            private set { SetProperty(ref _isUpdateAvailable, value); }
+        }
+
+        public string UpdateButtonText
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_latestVersionTag))
+                    return string.Empty;
+                return string.Format(LanguageManager.GetString("S.Update.Available"), _latestVersionTag);
+            }
+        }
+
+        public string UpdateTooltip => LanguageManager.GetString("S.Tooltip.Update");
+
         private void ToggleBackgroundExecute()
         {
             switch (_previewBackground)
@@ -326,9 +354,33 @@ namespace SvgToXaml.ViewModels
             LanguageManager.ToggleLanguage();
             OnPropertyChanged(nameof(LanguageLabel));
             OnPropertyChanged(nameof(BackgroundLabel));
+            OnPropertyChanged(nameof(UpdateButtonText));
+            OnPropertyChanged(nameof(UpdateTooltip));
         }
 
         public ObservableCollection<Tuple<object, ICommand>> ContextMenuCommands { get; set; }
+
+        private void OpenUpdatePageExecute()
+        {
+            if (!string.IsNullOrEmpty(_releasePageUrl))
+                Process.Start(_releasePageUrl);
+        }
+
+        private async Task CheckForUpdateAsync()
+        {
+            var result = await GitHubUpdateService.CheckForUpdateAsync();
+            if (result.IsUpdateAvailable)
+            {
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    _latestVersionTag = result.LatestVersionTag;
+                    _releasePageUrl = result.ReleaseUrl;
+                    IsUpdateAvailable = true;
+                    OnPropertyChanged(nameof(UpdateButtonText));
+                    OnPropertyChanged(nameof(UpdateTooltip));
+                });
+            }
+        }
 
         private void SetupFileWatcher(string folder)
         {
