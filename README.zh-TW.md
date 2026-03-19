@@ -6,6 +6,12 @@
 
 基於 [BerndK/SvgToXaml](https://github.com/nickkuijpers/SvgToXaml) 進行客製化修改，打造現代暗色主題的工作流程。
 
+## Web 版
+
+**[線上使用 — 免安裝](https://howwmingnew.github.io/SvgToXaml/)**
+
+純前端 Web 應用（React + TypeScript），完全在瀏覽器中運行。拖放 SVG 檔案即可預覽並即時轉換為 XAML。支援 Geometry 和 DrawingImage 雙模式輸出，可批次匯出 ResourceDictionary / UserControl / ZIP。
+
 ## 功能特色
 
 - **SVG 瀏覽器** — 開啟資料夾即可在可調整大小的網格中預覽所有 SVG 圖示
@@ -86,6 +92,7 @@ SvgToXaml.exe BuildDict /inputdir:".\svg" /outputname:icons /outputdir:"."
 | UI 套件 | [HandyControl](https://github.com/HandyOrg/HandyControl) |
 | 程式碼編輯器 | [AvalonEdit](http://avalonedit.net/) |
 | CI/CD | GitHub Actions（tag push 時自動建置） |
+| Web 版 | React 18 + TypeScript + Vite + Tailwind CSS |
 
 ## 專案結構
 
@@ -99,6 +106,7 @@ SvgToXaml/          # 主 WPF 應用程式
 SvgConverter/       # 核心 SVG 轉 XAML 轉換函式庫
 SvgConverterTest/   # 單元測試
 WpfDemoApp/         # 展示用應用程式
+svg-to-xaml-web/    # Web 版（React + TypeScript）
 ```
 
 ## 授權

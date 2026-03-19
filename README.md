@@ -6,6 +6,12 @@ A WPF desktop tool for browsing SVG files and converting them to XAML for use in
 
 Forked from [BerndK/SvgToXaml](https://github.com/nickkuijpers/SvgToXaml) with custom enhancements for a modern dark-themed workflow.
 
+## Web Version
+
+**[Try it online — no installation needed](https://howwmingnew.github.io/SvgToXaml/)**
+
+A pure frontend web app (React + TypeScript) that runs entirely in the browser. Drag & drop SVG files, preview them, and convert to XAML instantly. Supports both Geometry and DrawingImage output modes, batch export to ResourceDictionary / UserControl / ZIP.
+
 ## Features
 
 - **SVG Browser** — Open a folder and instantly preview all SVG icons in a resizable grid
@@ -86,6 +92,7 @@ Run `SvgToXaml.exe /?` for full CLI help.
 | UI Toolkit | [HandyControl](https://github.com/HandyOrg/HandyControl) |
 | Code Editor | [AvalonEdit](http://avalonedit.net/) |
 | CI/CD | GitHub Actions (auto-build on tag push) |
+| Web Version | React 18 + TypeScript + Vite + Tailwind CSS |
 
 ## Project Structure
 
@@ -99,6 +106,7 @@ SvgToXaml/          # Main WPF application
 SvgConverter/       # Core SVG-to-XAML conversion library
 SvgConverterTest/   # Unit tests
 WpfDemoApp/         # Demo application
+svg-to-xaml-web/    # Web version (React + TypeScript)
 ```
 
 ## License
