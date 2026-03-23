@@ -1,5 +1,5 @@
 import type { GeometryEntry } from '../types';
-import { getEffectiveAttribute, getInheritedAttribute, parseColor } from './svgParser';
+import { getEffectiveAttribute, getInheritedAttribute, parseColor, stripCssUnits } from './svgParser';
 import { parseTransform, transformPathData, isIdentity } from './transforms';
 import { cleanGeometryString } from './xamlFormatter';
 
@@ -65,10 +65,10 @@ function processChildren(el: Element, matrix: DOMMatrix, entries: GeometryEntry[
 function createBaseEntry(el: Element): Partial<GeometryEntry> {
   const fill = parseColor(getInheritedAttribute(el, 'fill'));
   const stroke = parseColor(getInheritedAttribute(el, 'stroke'));
-  const strokeWidth = getEffectiveAttribute(el, 'stroke-width') || getInheritedAttribute(el, 'stroke-width');
+  const strokeWidth = stripCssUnits(getEffectiveAttribute(el, 'stroke-width') || getInheritedAttribute(el, 'stroke-width'));
   const strokeLinecap = getEffectiveAttribute(el, 'stroke-linecap');
   const strokeLinejoin = getEffectiveAttribute(el, 'stroke-linejoin');
-  const strokeMiterlimit = getEffectiveAttribute(el, 'stroke-miterlimit');
+  const strokeMiterlimit = stripCssUnits(getEffectiveAttribute(el, 'stroke-miterlimit'));
 
   // Default fill is black if neither fill nor stroke specified
   const effectiveFill = fill === undefined ? (stroke ? null : '#FF000000') : fill;
@@ -267,10 +267,10 @@ function processRect(el: Element, matrix: DOMMatrix, entries: GeometryEntry[]): 
 }
 
 function processLine(el: Element, matrix: DOMMatrix, entries: GeometryEntry[]): void {
-  const x1 = el.getAttribute('x1') || '0';
-  const y1 = el.getAttribute('y1') || '0';
-  const x2 = el.getAttribute('x2') || '0';
-  const y2 = el.getAttribute('y2') || '0';
+  const x1 = parseFloat(el.getAttribute('x1') || '0');
+  const y1 = parseFloat(el.getAttribute('y1') || '0');
+  const x2 = parseFloat(el.getAttribute('x2') || '0');
+  const y2 = parseFloat(el.getAttribute('y2') || '0');
 
   const base = createBaseEntry(el);
   if (!base.stroke) return; // Lines need stroke

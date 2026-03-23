@@ -129,6 +129,19 @@ export function getInheritedAttribute(el: Element, attr: string): string | null 
   return null;
 }
 
+/**
+ * Strip CSS units (px, pt, em, rem, etc.) from a value string.
+ * WPF XAML uses unitless device-independent pixels.
+ */
+export function stripCssUnits(value: string | null): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  // Remove common CSS units; parseFloat handles leading numbers
+  const match = trimmed.match(/^([+-]?[\d.]+(?:e[+-]?\d+)?)\s*(?:px|pt|em|rem|ex|ch|vw|vh|vmin|vmax|cm|mm|in|pc|%)?$/i);
+  if (match) return match[1];
+  return trimmed;
+}
+
 export function parseViewBox(svg: Element): { x: number; y: number; width: number; height: number } {
   const vb = svg.getAttribute('viewBox');
   if (vb) {
