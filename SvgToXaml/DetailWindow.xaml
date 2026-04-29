@@ -68,11 +68,21 @@
             <TabItem Header="XAML" Style="{StaticResource DarkTabItemStyle}" Visibility="{Binding HasXaml, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="32"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="40"/>
                     </Grid.RowDefinitions>
-                    <textViewer:XmlViewer Grid.Row="0" x:Name="XmlViewer" FontFamily="Consolas" FontSize="10pt" Text="{Binding Xaml}" />
-                    <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0">
+                    <!-- 模式切換 -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4,4,4,0">
+                        <RadioButton x:Name="ModeButton" Content="Button" GroupName="XamlMode" IsChecked="True"
+                                     Foreground="#FFCCCCCC" Margin="0,0,8,0" Checked="XamlMode_Changed"/>
+                        <RadioButton x:Name="ModeGeometry" Content="Geometry" GroupName="XamlMode"
+                                     Foreground="#FFCCCCCC" Margin="0,0,8,0" Checked="XamlMode_Changed"/>
+                        <RadioButton x:Name="ModeDrawingImage" Content="DrawingImage" GroupName="XamlMode"
+                                     Foreground="#FFCCCCCC" Checked="XamlMode_Changed"/>
+                    </StackPanel>
+                    <textViewer:XmlViewer Grid.Row="1" x:Name="XmlViewer" FontFamily="Consolas" FontSize="10pt" />
+                    <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="4,0">
                         <Button Click="CopyToClipboardClick" Style="{StaticResource DarkButtonStyle}" Content="{DynamicResource S.Button.CopyClipboard}" />
                     </StackPanel>
                 </Grid>

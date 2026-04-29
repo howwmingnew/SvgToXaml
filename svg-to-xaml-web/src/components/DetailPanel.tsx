@@ -8,7 +8,7 @@ type Tab = 'preview' | 'xaml' | 'svg';
 export function DetailPanel() {
   const { files, selectedId } = useAppState();
   const [activeTab, setActiveTab] = useState<Tab>('xaml');
-  const [xamlMode, setXamlMode] = useState<'geometry' | 'drawingImage'>('geometry');
+  const [xamlMode, setXamlMode] = useState<'geometry' | 'drawingImage' | 'button'>('button');
   const { copyToClipboard } = useClipboard();
 
   const selectedFile = useMemo(
@@ -26,7 +26,9 @@ export function DetailPanel() {
 
   const xamlContent = xamlMode === 'geometry'
     ? (selectedFile.xamlGeometry || '(無 Geometry 輸出)')
-    : (selectedFile.xamlDrawingImage || '(無 DrawingImage 輸出)');
+    : xamlMode === 'drawingImage'
+      ? (selectedFile.xamlDrawingImage || '(無 DrawingImage 輸出)')
+      : (selectedFile.xamlButton || '(無 Button 輸出)');
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'preview', label: '預覽' },
@@ -92,6 +94,14 @@ export function DetailPanel() {
           <div className="h-full flex flex-col">
             {/* Mode toggle */}
             <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1E1E1E] border-b border-[#3F3F46]">
+              <button
+                onClick={() => setXamlMode('button')}
+                className={`px-2 py-0.5 rounded text-xs ${
+                  xamlMode === 'button' ? 'bg-[#007ACC] text-white' : 'text-[#808080] hover:text-[#CCCCCC]'
+                }`}
+              >
+                Button
+              </button>
               <button
                 onClick={() => setXamlMode('geometry')}
                 className={`px-2 py-0.5 rounded text-xs ${

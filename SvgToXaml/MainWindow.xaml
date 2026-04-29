@@ -252,6 +252,8 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <!-- SVG Icon -->
+                            <!-- 單擊：複製 Button Style XAML（預設輸出格式） -->
+                            <!-- 雙擊：保留同一指令（避免快速雙擊使用者反而沒效果） -->
                             <Image
                                 Grid.Row="0"
                                 Margin="6,6,6,2"
@@ -259,6 +261,7 @@
                                 VerticalAlignment="Center"
                                 Source="{Binding PreviewSource}">
                                 <Image.InputBindings>
+                                    <MouseBinding Command="{Binding CopyXamlCommand}" Gesture="LeftClick" />
                                     <MouseBinding Command="{Binding CopyXamlCommand}" Gesture="LeftDoubleClick" />
                                 </Image.InputBindings>
                             </Image>

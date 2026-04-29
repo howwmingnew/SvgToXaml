@@ -4,6 +4,7 @@ import { detectComplexity } from './complexity';
 import { extractEntries } from './elements';
 import { generateGeometryXaml } from './geometryMode';
 import { generateDrawingImageXaml } from './drawingImageMode';
+import { generateButtonXaml } from './buttonMode';
 
 /**
  * Main conversion entry point.
@@ -14,7 +15,7 @@ export function convertSvgToXaml(svgContent: string, filename: string): Conversi
   const svg = doc.querySelector('svg');
 
   if (!svg) {
-    return { geometry: '', drawingImage: '', isComplex: true };
+    return { geometry: '', drawingImage: '', button: '', isComplex: true };
   }
 
   const isComplex = detectComplexity(doc);
@@ -30,6 +31,7 @@ export function convertSvgToXaml(svgContent: string, filename: string): Conversi
 
   const geometry = generateGeometryXaml(geoResult, filename);
   const drawingImage = generateDrawingImageXaml(geoResult, filename);
+  const button = generateButtonXaml(geoResult, filename);
 
-  return { geometry, drawingImage, isComplex };
+  return { geometry, drawingImage, button, isComplex };
 }

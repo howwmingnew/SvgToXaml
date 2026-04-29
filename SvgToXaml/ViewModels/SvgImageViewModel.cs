@@ -52,8 +52,9 @@ namespace SvgToXaml.ViewModels
 
         protected override void CopyXamlExecute()
         {
-            // 一律優先複製 Geometry 格式，僅在擷取失敗時 fallback 到 DrawingImage
-            var text = GeometryData;
+            // 預設複製 Button Style；若擷取失敗依序 fallback 到 Geometry → DrawingImage
+            var text = ButtonData;
+            if (string.IsNullOrEmpty(text)) text = GeometryData;
             if (string.IsNullOrEmpty(text)) text = Xaml;
             if (string.IsNullOrEmpty(text)) return;
             try
@@ -75,6 +76,8 @@ namespace SvgToXaml.ViewModels
         public string Xaml => SvgData?.Xaml;
 
         public string GeometryData => SvgData?.GeometryData;
+
+        public string ButtonData => SvgData?.ButtonData;
 
         public bool IsComplexSvg => SvgData?.IsComplex ?? false;
 

@@ -5,11 +5,19 @@ import { generateResourceDictionary } from '../converter/resourceDictionary';
 import { generateUserControlXaml } from '../converter/userControl';
 import { validateName } from '../converter/xamlFormatter';
 
-export async function exportAsZip(files: SvgFileEntry[], mode: 'geometry' | 'drawingImage'): Promise<void> {
+type ExportMode = 'geometry' | 'drawingImage' | 'button';
+
+function pickXaml(file: SvgFileEntry, mode: ExportMode): string | undefined {
+  if (mode === 'geometry') return file.xamlGeometry;
+  if (mode === 'drawingImage') return file.xamlDrawingImage;
+  return file.xamlButton;
+}
+
+export async function exportAsZip(files: SvgFileEntry[], mode: ExportMode): Promise<void> {
   const zip = new JSZip();
 
   for (const file of files) {
-    const xaml = mode === 'geometry' ? file.xamlGeometry : file.xamlDrawingImage;
+    const xaml = pickXaml(file, mode);
     if (xaml) {
       const name = validateName(file.name) + '.xaml';
       zip.file(name, xaml);
@@ -20,7 +28,7 @@ export async function exportAsZip(files: SvgFileEntry[], mode: 'geometry' | 'dra
   saveAs(blob, 'svg-to-xaml-export.zip');
 }
 
-export function exportAsResourceDictionary(files: SvgFileEntry[], mode: 'geometry' | 'drawingImage'): void {
+export function exportAsResourceDictionary(files: SvgFileEntry[], mode: ExportMode): void {
   const xaml = generateResourceDictionary(files, mode);
   const blob = new Blob([xaml], { type: 'application/xml' });
   saveAs(blob, 'ResourceDictionary.xaml');

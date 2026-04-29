@@ -1,75 +1,26 @@
-import type { GeometryEntry, GeometryResult } from '../types';
+import type { GeometryResult } from '../types';
 import { validateName } from './xamlFormatter';
+import { generateResourceKey, collectBrush } from './geometryMode';
 
 /**
- * Generate resource key name with automatic color and shape hints.
- * Port of C# GenerateResourceKey (ConverterLogic.cs:571-619)
+ * Generate Button-mode XAML output.
+ *
+ * Style x:Key="Button_<baseName>" TargetType="Button"，含：
+ * - Background Setter (#01000000)，避免透明區域不觸發 IsMouseOver
+ * - Border 用 TemplateBinding Background
+ * - 每個 Path 加 x:Name 以利 Trigger 套用
+ * - ControlTemplate.Triggers 提供 IsMouseOver / IsPressed
+ *   （目前兩者套用相同顏色，後續可調）
  */
-export function generateResourceKey(baseName: string, index: number, entry: GeometryEntry): string {
-  const color = (entry.stroke || entry.fill || '').toLowerCase();
-  let colorHint = '';
-  const colorMap: Record<string, string[]> = {
-    Red: ['#ff0000', '#ffff0000', 'red'],
-    Green: ['#00ff00', '#ff00ff00', '#00d400', '#ff00d400', 'green'],
-    Blue: ['#198cff', '#ff198cff', '#0000ff', '#ff0000ff', 'blue'],
-    Yellow: ['#ffff00', '#ffffff00', 'yellow'],
-    White: ['#ffffff', '#ffffffff', 'white'],
-    Black: ['#000000', '#ff000000', 'black'],
-  };
-
-  for (const [hint, patterns] of Object.entries(colorMap)) {
-    if (patterns.some(p => p.toLowerCase() === color)) {
-      colorHint = '_' + hint;
-      break;
-    }
-  }
-
-  let geoHint = '';
-  if (entry.geometryType === 'EllipseGeometry') {
-    geoHint = '_Circle';
-  } else if (entry.data) {
-    const points = entry.data.match(/([\d.]+),([\d.]+)/g);
-    if (points && points.length === 2) {
-      const [p1, p2] = points.map(p => {
-        const [x, y] = p.split(',').map(Number);
-        return { x, y };
-      });
-      if (Math.abs(p1.x - p2.x) < 0.1) geoHint = '_VLine';
-      else if (Math.abs(p1.y - p2.y) < 0.1) geoHint = '_HLine';
-      else geoHint = '_Line';
-    }
-  }
-
-  if (colorHint || geoHint) return baseName + colorHint + geoHint;
-  return baseName + '_Part' + (index + 1);
-}
-
-/**
- * Collect brush colors, avoiding duplicate keys.
- */
-export function collectBrush(color: string | null, keyName: string, brushMap: Map<string, string>): void {
-  if (!color || brushMap.has(color)) return;
-  let brushName = keyName + '_Brush';
-  const existingValues = new Set(brushMap.values());
-  if (existingValues.has(brushName)) {
-    let counter = 2;
-    while (existingValues.has(brushName + counter)) counter++;
-    brushName = brushName + counter;
-  }
-  brushMap.set(color, brushName);
-}
-
-/**
- * Generate Geometry-mode XAML output.
- * Port of C# ConvertedSvgData.GeometryData (ConvertedSvgData.cs:63-186)
- */
-export function generateGeometryXaml(result: GeometryResult, filename: string): string {
+export function generateButtonXaml(result: GeometryResult, filename: string): string {
   const { entries, width, height } = result;
   if (!entries || entries.length === 0) return '';
 
   const baseName = validateName(filename.replace(/\.svg$/i, ''));
+  const styleKey = 'Button_' + baseName;
   const lines: string[] = [];
   const geoKeys: string[] = [];
+  const pathNames: string[] = [];
   const brushMap = new Map<string, string>();
   const usedGeoKeys = new Set<string>();
 
@@ -80,7 +31,6 @@ export function generateGeometryXaml(result: GeometryResult, filename: string): 
     const keyName = generateResourceKey(baseName, i, entry);
     let geoKey = keyName + '_Geo';
 
-    // Avoid duplicate keys
     if (usedGeoKeys.has(geoKey)) {
       let counter = 2;
       while (usedGeoKeys.has(geoKey + counter)) counter++;
@@ -101,6 +51,7 @@ export function generateGeometryXaml(result: GeometryResult, filename: string): 
     }
 
     geoKeys.push(geoKey);
+    pathNames.push(`path${i + 1}_${baseName}`);
 
     collectBrush(entry.stroke, keyName, brushMap);
     collectBrush(entry.fill, keyName, brushMap);
@@ -111,24 +62,34 @@ export function generateGeometryXaml(result: GeometryResult, filename: string): 
     lines.push(`<SolidColorBrush x:Key="${brushKey}" Color="${color}" />`);
   }
 
+  // 取「第一個有顏色」的 brush key 當 Trigger 顏色 placeholder
+  // （使用者要求：先用相同顏色，之後可手動換）
+  const firstBrushKey = brushMap.size > 0 ? brushMap.values().next().value : null;
+  const triggerBrushRef = firstBrushKey
+    ? `{StaticResource ${firstBrushKey}}`
+    : '#FF000000';
+
   // Style
   const w = width === Math.floor(width) ? Math.floor(width).toString() : width.toString();
   const h = height === Math.floor(height) ? Math.floor(height).toString() : height.toString();
   const p = '                            '; // 28 spaces
 
-  lines.push(`<Style x:Key="${baseName}" TargetType="ContentControl">`);
+  lines.push(`<Style x:Key="${styleKey}" TargetType="Button">`);
+  lines.push('    <Setter Property="Background" Value="#01000000" />');
   lines.push('    <Setter Property="Template">');
   lines.push('        <Setter.Value>');
-  lines.push('            <ControlTemplate TargetType="ContentControl">');
-  lines.push('                <Border>');
+  lines.push('            <ControlTemplate TargetType="Button">');
+  lines.push('                <Border Background="{TemplateBinding Background}">');
   lines.push('                    <Viewbox Stretch="Uniform">');
   lines.push(`                        <Grid Width="${w}" Height="${h}">`);
 
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
     const geoKey = geoKeys[i];
+    const pathName = pathNames[i];
     const attrs: string[] = [];
 
+    attrs.push(`x:Name="${pathName}"`);
     attrs.push(`Data="{StaticResource ${geoKey}}"`);
 
     if (entry.fill) attrs.push(`Fill="{StaticResource ${brushMap.get(entry.fill)!}}"`);
@@ -149,6 +110,23 @@ export function generateGeometryXaml(result: GeometryResult, filename: string): 
   lines.push('                        </Grid>');
   lines.push('                    </Viewbox>');
   lines.push('                </Border>');
+  lines.push('');
+  lines.push('                <ControlTemplate.Triggers>');
+  lines.push('                    <Trigger Property="IsMouseOver" Value="True">');
+  for (let i = 0; i < entries.length; i++) {
+    const pathName = pathNames[i];
+    const propName = entries[i].stroke ? 'Stroke' : 'Fill';
+    lines.push(`                        <Setter TargetName="${pathName}" Property="${propName}" Value="${triggerBrushRef}" />`);
+  }
+  lines.push('                    </Trigger>');
+  lines.push('                    <Trigger Property="IsPressed" Value="True">');
+  for (let i = 0; i < entries.length; i++) {
+    const pathName = pathNames[i];
+    const propName = entries[i].stroke ? 'Stroke' : 'Fill';
+    lines.push(`                        <Setter TargetName="${pathName}" Property="${propName}" Value="${triggerBrushRef}" />`);
+  }
+  lines.push('                    </Trigger>');
+  lines.push('                </ControlTemplate.Triggers>');
   lines.push('            </ControlTemplate>');
   lines.push('        </Setter.Value>');
   lines.push('    </Setter>');

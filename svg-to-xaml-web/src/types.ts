@@ -6,17 +6,19 @@ export interface SvgFileEntry {
   svgDataUrl: string;
   xamlGeometry?: string;
   xamlDrawingImage?: string;
+  xamlButton?: string;
   isComplex: boolean;
   viewBox: { x: number; y: number; width: number; height: number };
 }
 
 export type PreviewBackground = 'dark' | 'light' | 'checkerboard';
 
-export type OutputFormat = 'geometry' | 'drawingImage';
+export type OutputFormat = 'geometry' | 'drawingImage' | 'button';
 
 export interface ConversionResult {
   geometry: string;
   drawingImage: string;
+  button: string;
   isComplex: boolean;
 }
 
@@ -59,4 +61,4 @@ export type AppAction =
   | { type: 'SET_SEARCH_QUERY'; payload: string }
   | { type: 'SHOW_TOAST'; payload: string }
   | { type: 'HIDE_TOAST' }
-  | { type: 'UPDATE_FILE_XAML'; payload: { id: string; xamlGeometry: string; xamlDrawingImage: string; isComplex: boolean } };
+  | { type: 'UPDATE_FILE_XAML'; payload: { id: string; xamlGeometry: string; xamlDrawingImage: string; xamlButton: string; isComplex: boolean } };

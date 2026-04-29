@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using SvgToXaml.ViewModels;
 
 namespace SvgToXaml
 {
@@ -15,6 +16,7 @@ namespace SvgToXaml
         {
             InitializeComponent();
             Loaded += OnLoaded;
+            DataContextChanged += (s, e) => RefreshXaml();
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -32,6 +34,30 @@ namespace SvgToXaml
                 Width = 450;
                 Height = 380;
             }
+
+            RefreshXaml();
+        }
+
+        private void XamlMode_Changed(object sender, RoutedEventArgs e)
+        {
+            RefreshXaml();
+        }
+
+        private void RefreshXaml()
+        {
+            if (XmlViewer == null) return;
+            var vm = DataContext as SvgImageViewModel;
+            if (vm == null) return;
+
+            string text;
+            if (ModeGeometry != null && ModeGeometry.IsChecked == true)
+                text = vm.GeometryData;
+            else if (ModeDrawingImage != null && ModeDrawingImage.IsChecked == true)
+                text = vm.Xaml;
+            else
+                text = vm.ButtonData;
+
+            XmlViewer.Text = text ?? string.Empty;
         }
 
         private void CopyToClipboardClick(object sender, RoutedEventArgs e)

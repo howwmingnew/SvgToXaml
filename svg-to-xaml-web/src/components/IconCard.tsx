@@ -15,10 +15,14 @@ export const IconCard = memo(function IconCard({ file }: IconCardProps) {
 
   const handleClick = () => {
     dispatch({ type: 'SET_SELECTED', payload: file.id });
+    const xaml = file.xamlButton || file.xamlGeometry || file.xamlDrawingImage;
+    if (xaml) {
+      copyToClipboard(xaml);
+    }
   };
 
   const handleDoubleClick = () => {
-    const xaml = file.xamlGeometry || file.xamlDrawingImage;
+    const xaml = file.xamlButton || file.xamlGeometry || file.xamlDrawingImage;
     if (xaml) {
       copyToClipboard(xaml);
     }

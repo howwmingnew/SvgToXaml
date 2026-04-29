@@ -11,7 +11,7 @@ interface ExportDialogProps {
 export function ExportDialog({ open, onClose }: ExportDialogProps) {
   const { files } = useAppState();
   const [format, setFormat] = useState<ExportFormat>('resourceDictionary');
-  const [mode, setMode] = useState<'geometry' | 'drawingImage'>('geometry');
+  const [mode, setMode] = useState<'geometry' | 'drawingImage' | 'button'>('button');
 
   if (!open) return null;
 
@@ -75,6 +75,14 @@ export function ExportDialog({ open, onClose }: ExportDialogProps) {
           <div className="mb-4">
             <label className="text-sm text-[#CCCCCC] block mb-2">輸出模式</label>
             <div className="flex gap-2">
+              <button
+                onClick={() => setMode('button')}
+                className={`px-3 py-1 rounded text-sm ${
+                  mode === 'button' ? 'bg-[#007ACC] text-white' : 'text-[#808080] bg-[#3C3C3C] hover:text-[#CCCCCC]'
+                }`}
+              >
+                Button
+              </button>
               <button
                 onClick={() => setMode('geometry')}
                 className={`px-3 py-1 rounded text-sm ${

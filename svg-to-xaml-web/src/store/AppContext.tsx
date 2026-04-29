@@ -35,6 +35,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
                 ...f,
                 xamlGeometry: action.payload.xamlGeometry,
                 xamlDrawingImage: action.payload.xamlDrawingImage,
+                xamlButton: action.payload.xamlButton,
                 isComplex: action.payload.isComplex,
               }
             : f

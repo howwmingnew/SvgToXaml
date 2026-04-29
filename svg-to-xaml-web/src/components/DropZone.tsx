@@ -19,6 +19,7 @@ export function DropZone() {
           id: entry.id,
           xamlGeometry: result.geometry,
           xamlDrawingImage: result.drawingImage,
+          xamlButton: result.button,
           isComplex: result.isComplex,
         },
       });
