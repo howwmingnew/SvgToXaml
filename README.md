@@ -22,7 +22,8 @@ A pure frontend web app (React + TypeScript) that runs entirely in the browser. 
 - **Click to Copy** — Single-click any icon to copy its XAML to the clipboard with a toast notification (default mode is configurable in Settings)
 - **Settings** — In-app settings window (toolbar gear icon):
   - Default left-click action — **Button Style** vs **Geometry Style**, with side-by-side example XAML in the help tooltip
-  - **Design Tokens** — define your project's color tokens once; SVG colors that match a token are emitted as `{StaticResource TokenKey}` instead of generating a per-icon `SolidColorBrush`. Supports importing tokens from any `ResourceDictionary` XAML you paste in
+  - **Design Tokens** — define your project's color tokens once; SVG colors that match a token are emitted as `{StaticResource TokenKey}` instead of generating a per-icon `SolidColorBrush`. Manage tokens via inline DataGrid, **Import from XAML** (merge into existing list), or **Edit XAML** (open the full token set as a `ResourceDictionary` and edit it directly — saving replaces the whole list). Tokens are auto-sorted by key.
+  - Settings persist across version updates (auto-migrated from the previous user.config on first launch of a new version).
 - **Detail View** — Inspect preview, design size, actual size, stretch mode, raw XAML, and SVG source
 - **Background Toggle** — Switch preview background between dark gray, light gray, and checkerboard
 - **Auto Refresh** — `FileSystemWatcher` monitors the folder and refreshes automatically when files change

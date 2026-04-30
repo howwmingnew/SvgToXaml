@@ -22,7 +22,8 @@
 - **單擊即複製** — 左鍵單擊任一圖示即可將 XAML 複製到剪貼簿，並顯示 Toast 通知（預設複製模式可在設定中切換）
 - **設定頁面** — 工具列齒輪按鈕開啟設定視窗：
   - 預設左鍵動作 — **Button Style** 與 **Geometry Style** 二選一，旁邊 `?` 按鈕的 tooltip 提供兩種輸出範例的 XAML 對照
-  - **Design Tokens** — 註冊你專案的色彩 token，SVG 顏色命中 token 時直接輸出 `{StaticResource TokenKey}`，不再為每個圖示產生獨立的 `SolidColorBrush`。支援從任意 `ResourceDictionary` XAML 貼上匯入
+  - **Design Tokens** — 註冊你專案的色彩 token，SVG 顏色命中 token 時直接輸出 `{StaticResource TokenKey}`，不再為每個圖示產生獨立的 `SolidColorBrush`。可用 DataGrid 即時編輯、**從 XAML 匯入**（與現有清單合併）、或**編輯 XAML**（把整個 token 集合以 `ResourceDictionary` 形式開啟編輯，存檔後完整取代）。Token 會自動依 key 排序。
+  - 設定會跨版本保留（更新版本後第一次啟動會自動從舊版 user.config 遷移過來）。
 - **Detail 檢視** — 檢查預覽、設計尺寸、實際尺寸、縮放模式、原始 XAML 及 SVG 原始碼
 - **背景切換** — 在深灰、淺灰和棋盤格之間切換預覽背景
 - **自動刷新** — 使用 `FileSystemWatcher` 監聽資料夾，檔案變更時自動刷新
