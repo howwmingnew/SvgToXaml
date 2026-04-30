@@ -39,4 +39,27 @@
     <!-- Dialogs -->
     <sys:String x:Key="S.Dialog.SelectFolder">選擇資料夾</sys:String>
 
+    <!-- Settings -->
+    <sys:String x:Key="S.Tooltip.Settings">設定</sys:String>
+    <sys:String x:Key="S.Settings.Title">設定</sys:String>
+    <sys:String x:Key="S.Settings.DefaultCopyMode">預設左鍵單擊動作</sys:String>
+    <sys:String x:Key="S.Settings.CopyMode.Button">複製 Button Style</sys:String>
+    <sys:String x:Key="S.Settings.CopyMode.Geometry">複製 Geometry Style</sys:String>
+    <sys:String x:Key="S.Settings.DesignTokens">Design Tokens</sys:String>
+    <sys:String x:Key="S.Settings.DesignTokens.Hint">SVG 顏色命中 token 時，輸出的 XAML 會直接引用 token key，不再產生獨立的 SolidColorBrush。</sys:String>
+    <sys:String x:Key="S.Settings.DesignTokens.Col.Key">Token Key</sys:String>
+    <sys:String x:Key="S.Settings.DesignTokens.Col.Color">Color (#AARRGGBB)</sys:String>
+    <sys:String x:Key="S.Settings.DesignTokens.Col.Preview">預覽</sys:String>
+    <sys:String x:Key="S.Settings.Btn.Add">新增</sys:String>
+    <sys:String x:Key="S.Settings.Btn.Remove">刪除</sys:String>
+    <sys:String x:Key="S.Settings.Btn.ImportXaml">從 XAML 匯入</sys:String>
+    <sys:String x:Key="S.Settings.Btn.OK">確定</sys:String>
+    <sys:String x:Key="S.Settings.Btn.Cancel">取消</sys:String>
+    <sys:String x:Key="S.Settings.Import.Title">貼上 ResourceDictionary XAML</sys:String>
+    <sys:String x:Key="S.Settings.Import.Hint">貼上含 SolidColorBrush / Color 的 ResourceDictionary，將自動擷取 key 與顏色。</sys:String>
+    <sys:String x:Key="S.Settings.Import.Result">已匯入 {0} 個 token</sys:String>
+    <sys:String x:Key="S.Settings.Import.ParseError">解析失敗，請確認 XAML 格式正確</sys:String>
+    <sys:String x:Key="S.Settings.CopyMode.Help.ButtonTitle">Button Style — 整個 Button 模板，附 IsMouseOver / IsPressed 互動</sys:String>
+    <sys:String x:Key="S.Settings.CopyMode.Help.GeometryTitle">Geometry Style — 純圖示模板（ContentControl），可由外部 Foreground 控色</sys:String>
+
 </ResourceDictionary>

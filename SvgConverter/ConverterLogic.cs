@@ -122,8 +122,19 @@ namespace SvgConverter
         /// </summary>
         public static string SvgDirToUserControlXaml(string folder, ResKeyInfo resKeyInfo, bool filterPixelsPerDip)
         {
+            return SvgDirToUserControlXaml(folder, resKeyInfo, filterPixelsPerDip, null);
+        }
+
+        /// <summary>
+        /// 同上，並可套用 Design Token：匯出 XAML 中命中 token 的顏色會改成 StaticResource 引用。
+        /// </summary>
+        public static string SvgDirToUserControlXaml(string folder, ResKeyInfo resKeyInfo, bool filterPixelsPerDip, DesignTokenSet designTokens)
+        {
             var resDictXaml = SvgDirToXaml(folder, resKeyInfo, filterPixelsPerDip);
             var resDoc = XDocument.Parse(resDictXaml);
+
+            // 套用 design token：把 Brush/ForegroundBrush 中命中 token 的顏色改成 StaticResource 引用
+            ApplyDesignTokens(resDoc.Root, designTokens);
 
             // 取得所有 DrawingImage 的 key（用於產生視覺預覽）
             var drawingImageKeys = resDoc.Root.Elements(NsDef + "DrawingImage")
@@ -163,6 +174,23 @@ namespace SvgConverter
             );
 
             return new XDocument(userControl).ToString();
+        }
+
+        /// <summary>
+        /// 走訪 ResourceDictionary 內所有 Brush / ForegroundBrush 屬性，命中 design token 的顏色換成 StaticResource 引用。
+        /// </summary>
+        private static void ApplyDesignTokens(XElement root, DesignTokenSet designTokens)
+        {
+            if (designTokens == null || designTokens.Count == 0 || root == null) return;
+            var brushAttrs = CollectBrushAttributesWithColor(root).ToList();
+            foreach (var attr in brushAttrs)
+            {
+                string tokenKey;
+                if (designTokens.TryResolve(attr.Value, out tokenKey))
+                {
+                    attr.Value = "{StaticResource " + tokenKey + "}";
+                }
+            }
         }
 
         public static string SvgDirToXaml(string folder, ResKeyInfo resKeyInfo, WpfDrawingSettings wpfDrawingSettings,

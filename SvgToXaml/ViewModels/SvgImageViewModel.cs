@@ -2,6 +2,8 @@
 using System.Windows;
 using System.Windows.Media;
 using SvgConverter;
+using SvgToXaml.Infrastructure;
+using SvgToXaml.Properties;
 
 namespace SvgToXaml.ViewModels
 {
@@ -52,9 +54,19 @@ namespace SvgToXaml.ViewModels
 
         protected override void CopyXamlExecute()
         {
-            // 預設複製 Button Style；若擷取失敗依序 fallback 到 Geometry → DrawingImage
-            var text = ButtonData;
-            if (string.IsNullOrEmpty(text)) text = GeometryData;
+            // 依使用者設定決定優先順序，命中失敗時依序 fallback
+            var mode = Settings.Default.DefaultCopyMode;
+            string text;
+            if (string.Equals(mode, "Geometry", StringComparison.OrdinalIgnoreCase))
+            {
+                text = GeometryData;
+                if (string.IsNullOrEmpty(text)) text = ButtonData;
+            }
+            else
+            {
+                text = ButtonData;
+                if (string.IsNullOrEmpty(text)) text = GeometryData;
+            }
             if (string.IsNullOrEmpty(text)) text = Xaml;
             if (string.IsNullOrEmpty(text)) return;
             try
@@ -91,6 +103,8 @@ namespace SvgToXaml.ViewModels
                     try
                     {
                         _convertedSvgData = ConverterLogic.ConvertSvg(Filepath, ResultMode.DrawingImage);
+                        if (_convertedSvgData != null)
+                            _convertedSvgData.DesignTokens = DesignTokenStore.Current;
                     }
                     catch (Exception)
                     {

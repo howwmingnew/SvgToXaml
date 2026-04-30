@@ -91,6 +91,7 @@ namespace SvgToXaml.ViewModels
             ToggleBackgroundCommand = new DelegateCommand(ToggleBackgroundExecute);
             ToggleLanguageCommand = new DelegateCommand(ToggleLanguageExecute);
             OpenUpdatePageCommand = new DelegateCommand(OpenUpdatePageExecute);
+            OpenSettingsCommand = new DelegateCommand(OpenSettingsExecute);
 
             _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
             _debounceTimer.Tick += (s, e) =>
@@ -106,6 +107,9 @@ namespace SvgToXaml.ViewModels
             var savedSize = Settings.Default.IconSize;
             if (savedSize >= 16 && savedSize <= 500)
                 _iconSize = savedSize;
+
+            // Design tokens 變更時重讀目前資料夾，讓 ConvertedSvgData 使用新 tokens
+            DesignTokenStore.TokensChanged += OnDesignTokensChanged;
 
             // 背景檢查 GitHub 更新（fire-and-forget）
             var _ = CheckForUpdateAsync();
@@ -145,7 +149,7 @@ namespace SvgToXaml.ViewModels
                 {
                     XamlName = Path.GetFileNameWithoutExtension(outFileName),
                 };
-                File.WriteAllText(outFileName, ConverterLogic.SvgDirToUserControlXaml(CurrentDir, resKeyInfo, false));
+                File.WriteAllText(outFileName, ConverterLogic.SvgDirToUserControlXaml(CurrentDir, resKeyInfo, false, DesignTokenStore.Current));
 
                 // 匯出後開啟預覽視窗
                 var previewWindow = new ExportPreviewWindow();
@@ -265,6 +269,7 @@ namespace SvgToXaml.ViewModels
         public ICommand ToggleBackgroundCommand { get; set; }
         public ICommand ToggleLanguageCommand { get; set; }
         public ICommand OpenUpdatePageCommand { get; set; }
+        public ICommand OpenSettingsCommand { get; set; }
 
         public PreviewBackground PreviewBackground
         {
@@ -378,6 +383,14 @@ namespace SvgToXaml.ViewModels
                 Process.Start(_releasePageUrl);
         }
 
+        private void OpenSettingsExecute()
+        {
+            var settingsWindow = new SettingsWindow();
+            if (Application.Current?.MainWindow?.IsLoaded == true)
+                settingsWindow.Owner = Application.Current.MainWindow;
+            settingsWindow.ShowDialog();
+        }
+
         private async Task CheckForUpdateAsync()
         {
             var result = await GitHubUpdateService.CheckForUpdateAsync();
@@ -417,6 +430,15 @@ namespace SvgToXaml.ViewModels
             _fileWatcher.Renamed += OnFileChanged;
             _fileWatcher.Changed += OnFileChanged;
             _fileWatcher.EnableRaisingEvents = true;
+        }
+
+        private void OnDesignTokensChanged()
+        {
+            Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!string.IsNullOrEmpty(_currentDir))
+                    ReadImagesFromDir(_currentDir);
+            }));
         }
 
         private void OnFileChanged(object sender, FileSystemEventArgs e)

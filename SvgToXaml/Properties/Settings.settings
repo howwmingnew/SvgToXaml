@@ -11,5 +11,8 @@
     <Setting Name="IconSize" Type="System.Double" Scope="User">
       <Value Profile="(Default)">96</Value>
     </Setting>
+    <Setting Name="DefaultCopyMode" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Button</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

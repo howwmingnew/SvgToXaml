@@ -1,0 +1,306 @@
+<Window
+    x:Class="SvgToXaml.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModels="clr-namespace:SvgToXaml.ViewModels"
+    Title="{DynamicResource S.Settings.Title}"
+    Width="640"
+    Height="540"
+    Background="#FF1E1E1E"
+    FontFamily="Segoe UI"
+    Foreground="#FFCCCCCC"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    d:DataContext="{d:DesignInstance viewModels:SettingsViewModel}"
+    mc:Ignorable="d">
+    <Window.Resources>
+        <!-- Section title -->
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#FFE0E0E0" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+
+        <Style x:Key="HintText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="#FF999999" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+
+        <Style x:Key="DarkRadio" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#FFCCCCCC" />
+            <Setter Property="Margin" Value="0,2" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="DialogButton" TargetType="Button">
+            <Setter Property="Background" Value="#FF3F3F46" />
+            <Setter Property="BorderBrush" Value="#FF555555" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#FFCCCCCC" />
+            <Setter Property="Padding" Value="14,4" />
+            <Setter Property="MinWidth" Value="72" />
+            <Setter Property="Margin" Value="4,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF505059" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF2A2A30" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButton" BasedOn="{StaticResource DialogButton}" TargetType="Button">
+            <Setter Property="Background" Value="#FF0E639C" />
+            <Setter Property="BorderBrush" Value="#FF1177BB" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ===== 預設左鍵動作 ===== -->
+        <TextBlock Grid.Row="0"
+                   Style="{StaticResource SectionTitle}"
+                   Text="{DynamicResource S.Settings.DefaultCopyMode}" />
+        <StackPanel Grid.Row="1"
+                    Margin="0,0,0,16"
+                    Orientation="Horizontal">
+            <RadioButton Margin="0,0,16,0"
+                         GroupName="CopyMode"
+                         Content="{DynamicResource S.Settings.CopyMode.Button}"
+                         IsChecked="{Binding IsCopyModeButton, Mode=TwoWay}"
+                         Style="{StaticResource DarkRadio}" />
+            <RadioButton Margin="0,0,12,0"
+                         GroupName="CopyMode"
+                         Content="{DynamicResource S.Settings.CopyMode.Geometry}"
+                         IsChecked="{Binding IsCopyModeGeometry, Mode=TwoWay}"
+                         Style="{StaticResource DarkRadio}" />
+            <!-- Help button with code examples in tooltip -->
+            <Button Width="20"
+                    Height="20"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderBrush="#FF555555"
+                    BorderThickness="1"
+                    Content="?"
+                    Cursor="Help"
+                    FontSize="11"
+                    FontWeight="Bold"
+                    Foreground="#FFCCCCCC"
+                    VerticalAlignment="Center">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#3FFFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+                <Button.ToolTip>
+                    <ToolTip Background="#FF1E1E1E"
+                             BorderBrush="#FF3F3F46"
+                             BorderThickness="1"
+                             Foreground="#FFCCCCCC"
+                             MaxWidth="720">
+                        <StackPanel Margin="6">
+                            <TextBlock Margin="0,0,0,4"
+                                       FontWeight="SemiBold"
+                                       Foreground="#FFE0E0E0"
+                                       Text="{DynamicResource S.Settings.CopyMode.Help.ButtonTitle}" />
+                            <Border Margin="0,0,0,12"
+                                    Padding="8"
+                                    Background="#FF252526"
+                                    BorderBrush="#FF3F3F46"
+                                    BorderThickness="1"
+                                    CornerRadius="3">
+                                <TextBlock FontFamily="Consolas"
+                                           FontSize="11"
+                                           Foreground="#FFCCCCCC"
+                                           xml:space="preserve">&lt;Style x:Key="Button_home" TargetType="Button"&gt;
+    &lt;Setter Property="Template"&gt;
+        &lt;Setter.Value&gt;
+            &lt;ControlTemplate TargetType="Button"&gt;
+                &lt;Border Background="{TemplateBinding Background}"&gt;
+                    &lt;Path x:Name="path1_home"
+                          Data="{StaticResource home_Geo}"
+                          Fill="{StaticResource home_Brush}" /&gt;
+                &lt;/Border&gt;
+                &lt;ControlTemplate.Triggers&gt;
+                    &lt;Trigger Property="IsMouseOver" Value="True"&gt;
+                        &lt;Setter TargetName="path1_home" Property="Fill" Value="..." /&gt;
+                    &lt;/Trigger&gt;
+                    &lt;Trigger Property="IsPressed" Value="True"&gt;
+                        &lt;Setter TargetName="path1_home" Property="Fill" Value="..." /&gt;
+                    &lt;/Trigger&gt;
+                &lt;/ControlTemplate.Triggers&gt;
+            &lt;/ControlTemplate&gt;
+        &lt;/Setter.Value&gt;
+    &lt;/Setter&gt;
+&lt;/Style&gt;
+
+&lt;!-- 用法 / Usage --&gt;
+&lt;Button Style="{StaticResource Button_home}" Width="32" Height="32" /&gt;</TextBlock>
+                            </Border>
+                            <TextBlock Margin="0,0,0,4"
+                                       FontWeight="SemiBold"
+                                       Foreground="#FFE0E0E0"
+                                       Text="{DynamicResource S.Settings.CopyMode.Help.GeometryTitle}" />
+                            <Border Padding="8"
+                                    Background="#FF252526"
+                                    BorderBrush="#FF3F3F46"
+                                    BorderThickness="1"
+                                    CornerRadius="3">
+                                <TextBlock FontFamily="Consolas"
+                                           FontSize="11"
+                                           Foreground="#FFCCCCCC"
+                                           xml:space="preserve">&lt;Style x:Key="home" TargetType="ContentControl"&gt;
+    &lt;Setter Property="Template"&gt;
+        &lt;Setter.Value&gt;
+            &lt;ControlTemplate TargetType="ContentControl"&gt;
+                &lt;Border&gt;
+                    &lt;Path Data="{StaticResource home_Geo}"
+                          Fill="{StaticResource home_Brush}" /&gt;
+                &lt;/Border&gt;
+            &lt;/ControlTemplate&gt;
+        &lt;/Setter.Value&gt;
+    &lt;/Setter&gt;
+&lt;/Style&gt;
+
+&lt;!-- 用法 / Usage --&gt;
+&lt;ContentControl Style="{StaticResource home}" Width="32" Height="32" /&gt;</TextBlock>
+                            </Border>
+                        </StackPanel>
+                    </ToolTip>
+                </Button.ToolTip>
+            </Button>
+        </StackPanel>
+
+        <!-- ===== Design Tokens ===== -->
+        <TextBlock Grid.Row="2"
+                   Style="{StaticResource SectionTitle}"
+                   Text="{DynamicResource S.Settings.DesignTokens}" />
+
+        <Border Grid.Row="3"
+                Background="#FF252526"
+                BorderBrush="#FF3F3F46"
+                BorderThickness="1"
+                CornerRadius="4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0"
+                           Margin="10,8,10,4"
+                           Style="{StaticResource HintText}"
+                           Text="{DynamicResource S.Settings.DesignTokens.Hint}" />
+                <DataGrid x:Name="TokenGrid"
+                          Grid.Row="1"
+                          Margin="0"
+                          AutoGenerateColumns="False"
+                          Background="#FF252526"
+                          BorderThickness="0"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeRows="False"
+                          ColumnHeaderHeight="26"
+                          Foreground="#FFCCCCCC"
+                          GridLinesVisibility="Horizontal"
+                          HeadersVisibility="Column"
+                          HorizontalGridLinesBrush="#FF3F3F46"
+                          ItemsSource="{Binding DesignTokens}"
+                          RowBackground="#FF252526"
+                          AlternatingRowBackground="#FF2A2A2C"
+                          SelectionMode="Single"
+                          SelectionUnit="FullRow">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Width="*"
+                                            Binding="{Binding Key, UpdateSourceTrigger=PropertyChanged}"
+                                            Header="{DynamicResource S.Settings.DesignTokens.Col.Key}" />
+                        <DataGridTextColumn Width="160"
+                                            Binding="{Binding Color, UpdateSourceTrigger=PropertyChanged}"
+                                            Header="{DynamicResource S.Settings.DesignTokens.Col.Color}" />
+                        <DataGridTemplateColumn Width="80"
+                                                Header="{DynamicResource S.Settings.DesignTokens.Col.Preview}"
+                                                IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Margin="6,2"
+                                            Background="{Binding PreviewBrush}"
+                                            BorderBrush="#FF555555"
+                                            BorderThickness="1"
+                                            CornerRadius="2" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel Grid.Row="2"
+                            Margin="6"
+                            Orientation="Horizontal">
+                    <Button Click="AddToken_Click"
+                            Content="{DynamicResource S.Settings.Btn.Add}"
+                            Style="{StaticResource DialogButton}" />
+                    <Button Click="RemoveToken_Click"
+                            Content="{DynamicResource S.Settings.Btn.Remove}"
+                            Style="{StaticResource DialogButton}" />
+                    <Button Command="{Binding ImportFromXamlCommand}"
+                            Content="{DynamicResource S.Settings.Btn.ImportXaml}"
+                            Style="{StaticResource DialogButton}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ===== Footer ===== -->
+        <StackPanel Grid.Row="5"
+                    Margin="0,16,0,0"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+            <Button Click="Cancel_Click"
+                    Content="{DynamicResource S.Settings.Btn.Cancel}"
+                    Style="{StaticResource DialogButton}" />
+            <Button Click="OK_Click"
+                    Content="{DynamicResource S.Settings.Btn.OK}"
+                    IsDefault="True"
+                    Style="{StaticResource PrimaryButton}" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -39,4 +39,27 @@
     <!-- Dialogs -->
     <sys:String x:Key="S.Dialog.SelectFolder">Select Folder</sys:String>
 
+    <!-- Settings -->
+    <sys:String x:Key="S.Tooltip.Settings">Settings</sys:String>
+    <sys:String x:Key="S.Settings.Title">Settings</sys:String>
+    <sys:String x:Key="S.Settings.DefaultCopyMode">Default left-click action</sys:String>
+    <sys:String x:Key="S.Settings.CopyMode.Button">Copy Button Style</sys:String>
+    <sys:String x:Key="S.Settings.CopyMode.Geometry">Copy Geometry Style</sys:String>
+    <sys:String x:Key="S.Settings.DesignTokens">Design Tokens</sys:String>
+    <sys:String x:Key="S.Settings.DesignTokens.Hint">When an SVG color matches a token, the exported XAML references the token key directly instead of generating a new SolidColorBrush.</sys:String>
+    <sys:String x:Key="S.Settings.DesignTokens.Col.Key">Token Key</sys:String>
+    <sys:String x:Key="S.Settings.DesignTokens.Col.Color">Color (#AARRGGBB)</sys:String>
+    <sys:String x:Key="S.Settings.DesignTokens.Col.Preview">Preview</sys:String>
+    <sys:String x:Key="S.Settings.Btn.Add">Add</sys:String>
+    <sys:String x:Key="S.Settings.Btn.Remove">Remove</sys:String>
+    <sys:String x:Key="S.Settings.Btn.ImportXaml">Import from XAML</sys:String>
+    <sys:String x:Key="S.Settings.Btn.OK">OK</sys:String>
+    <sys:String x:Key="S.Settings.Btn.Cancel">Cancel</sys:String>
+    <sys:String x:Key="S.Settings.Import.Title">Paste ResourceDictionary XAML</sys:String>
+    <sys:String x:Key="S.Settings.Import.Hint">Paste a ResourceDictionary containing SolidColorBrush / Color entries; keys and colors will be extracted automatically.</sys:String>
+    <sys:String x:Key="S.Settings.Import.Result">Imported {0} token(s)</sys:String>
+    <sys:String x:Key="S.Settings.Import.ParseError">Parse failed — please check XAML format</sys:String>
+    <sys:String x:Key="S.Settings.CopyMode.Help.ButtonTitle">Button Style — full Button template with IsMouseOver / IsPressed triggers</sys:String>
+    <sys:String x:Key="S.Settings.CopyMode.Help.GeometryTitle">Geometry Style — icon-only template (ContentControl), color controlled externally via Foreground</sys:String>
+
 </ResourceDictionary>

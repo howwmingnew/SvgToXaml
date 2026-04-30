@@ -22,6 +22,7 @@ namespace SvgToXaml
             }
             else
             {   //normale WPF-Applikationslogik
+                DesignTokenStore.Reload();
                 var app = new App();
                 app.InitializeComponent();
                 app.Run();

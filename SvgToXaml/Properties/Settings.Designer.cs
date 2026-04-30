@@ -58,5 +58,17 @@ namespace SvgToXaml.Properties {
                 this["IconSize"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Button")]
+        public string DefaultCopyMode {
+            get {
+                return ((string)(this["DefaultCopyMode"]));
+            }
+            set {
+                this["DefaultCopyMode"] = value;
+            }
+        }
     }
 }

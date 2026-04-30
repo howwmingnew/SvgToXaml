@@ -15,6 +15,16 @@ namespace SvgConverter
         private string _objectName;
         private DependencyObject _convertedObj;
         private GeometryResult _geometryResult;
+        private DesignTokenSet _designTokens = DesignTokenSet.Empty;
+
+        /// <summary>
+        /// Design Token 對照表，套用到 GeometryData / ButtonData 輸出。預設為空表示不套用。
+        /// </summary>
+        public DesignTokenSet DesignTokens
+        {
+            get { return _designTokens ?? DesignTokenSet.Empty; }
+            set { _designTokens = value ?? DesignTokenSet.Empty; }
+        }
 
         public string Filepath
         {
@@ -74,6 +84,7 @@ namespace SvgConverter
                 var lines = new List<string>();
                 var geoKeys = new List<string>();
                 var brushMap = new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
+                var tokenColors = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
                 var usedGeoKeys = new HashSet<string>();
 
                 lines.Add(string.Format("<!--{0} Start-->", baseName));
@@ -115,14 +126,15 @@ namespace SvgConverter
 
                     geoKeys.Add(geoKey);
 
-                    // 收集 Brush 顏色
-                    CollectBrush(entry.Stroke, keyName, brushMap);
-                    CollectBrush(entry.Fill, keyName, brushMap);
+                    // 收集 Brush 顏色（命中 design token 時直接記錄 token key 並標記，不產生 SolidColorBrush）
+                    CollectBrush(entry.Stroke, keyName, brushMap, tokenColors);
+                    CollectBrush(entry.Fill, keyName, brushMap, tokenColors);
                 }
 
-                // --- Brush 資源 ---
+                // --- Brush 資源（design token 對應的顏色不產生 SolidColorBrush） ---
                 foreach (var kvp in brushMap)
                 {
+                    if (tokenColors.Contains(kvp.Key)) continue;
                     lines.Add(string.Format("<SolidColorBrush x:Key=\"{0}\" Color=\"{1}\" />", kvp.Value, kvp.Key));
                 }
 
@@ -202,6 +214,7 @@ namespace SvgConverter
                 var geoKeys = new List<string>();
                 var pathNames = new List<string>();
                 var brushMap = new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
+                var tokenColors = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
                 var usedGeoKeys = new HashSet<string>();
 
                 lines.Add(string.Format("<!--{0} Start-->", baseName));
@@ -243,13 +256,14 @@ namespace SvgConverter
                     geoKeys.Add(geoKey);
                     pathNames.Add(string.Format("path{0}_{1}", i + 1, baseName));
 
-                    CollectBrush(entry.Stroke, keyName, brushMap);
-                    CollectBrush(entry.Fill, keyName, brushMap);
+                    CollectBrush(entry.Stroke, keyName, brushMap, tokenColors);
+                    CollectBrush(entry.Fill, keyName, brushMap, tokenColors);
                 }
 
-                // --- Brush 資源 ---
+                // --- Brush 資源（design token 對應的顏色不產生 SolidColorBrush） ---
                 foreach (var kvp in brushMap)
                 {
+                    if (tokenColors.Contains(kvp.Key)) continue;
                     lines.Add(string.Format("<SolidColorBrush x:Key=\"{0}\" Color=\"{1}\" />", kvp.Value, kvp.Key));
                 }
 
@@ -345,9 +359,19 @@ namespace SvgConverter
             }
         }
 
-        private static void CollectBrush(string color, string keyName, Dictionary<string, string> brushMap)
+        private void CollectBrush(string color, string keyName, Dictionary<string, string> brushMap, HashSet<string> tokenColors)
         {
             if (color == null || brushMap.ContainsKey(color)) return;
+
+            // 先檢查 design token：命中時直接用 token key 並標記為「不要產生 SolidColorBrush」
+            string tokenKey;
+            if (DesignTokens.TryResolve(color, out tokenKey))
+            {
+                brushMap[color] = tokenKey;
+                tokenColors.Add(color);
+                return;
+            }
+
             var brushName = keyName + "_Brush";
             // 避免重複 brush key name
             if (brushMap.Values.Contains(brushName))

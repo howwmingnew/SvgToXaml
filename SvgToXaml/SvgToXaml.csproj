@@ -83,6 +83,13 @@
     <Compile Include="ExportPreviewWindow.xaml.cs">
       <DependentUpon>ExportPreviewWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ImportXamlDialog.xaml.cs">
+      <DependentUpon>ImportXamlDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="SettingsWindow.xaml.cs">
+      <DependentUpon>SettingsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Infrastructure\DesignTokenStore.cs" />
     <Compile Include="Infrastructure\GitHubUpdateService.cs" />
     <Compile Include="Infrastructure\FolderPicker.cs" />
     <Compile Include="Infrastructure\LanguageManager.cs" />
@@ -96,6 +103,7 @@
     <Compile Include="ViewModels\GraphicImageViewModel.cs" />
     <Compile Include="ViewModels\ImageBaseViewModel.cs" />
     <Compile Include="ViewModels\PreviewBackground.cs" />
+    <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="ViewModels\SvgImageViewModel.cs" />
     <Compile Include="ViewModels\SvgImagesViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
@@ -105,6 +113,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ExportPreviewWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ImportXamlDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SettingsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

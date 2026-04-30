@@ -79,6 +79,7 @@
     <Compile Include="FileUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ConverterLogic.cs" />
+    <Compile Include="DesignTokenSet.cs" />
     <Compile Include="ResKeyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
