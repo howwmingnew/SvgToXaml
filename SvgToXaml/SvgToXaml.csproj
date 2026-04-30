@@ -196,11 +196,33 @@
   <Import Project="..\packages\Costura.Fody.5.7.0\build\Costura.Fody.props" Condition="Exists('..\packages\Costura.Fody.5.7.0\build\Costura.Fody.props')" />
   <Import Project="..\packages\Costura.Fody.5.7.0\build\Costura.Fody.targets" Condition="Exists('..\packages\Costura.Fody.5.7.0\build\Costura.Fody.targets')" />
   <Import Project="..\packages\Fody.6.8.2\build\Fody.targets" Condition="Exists('..\packages\Fody.6.8.2\build\Fody.targets')" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
+  <!--
+    從 git tag 自動推導版本號（取代寫死在 AssemblyInfo.cs 的版本欄位）。
+    規則：
+      git describe 結果類似 v1.5.0 或 v1.5.0-3-gabc1234
+      取出 1.5.0 寫入 AssemblyVersion / AssemblyFileVersion = 1.5.0.0
+      完整描述寫入 AssemblyInformationalVersion（含 commit 偏移）
+      找不到 tag 或非 git 環境時 fallback 為 0.0.0
   -->
+  <Target Name="SetVersionFromGitTag" BeforeTargets="CoreCompile">
+    <Exec Command="git describe --tags --long --always" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low" StandardErrorImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitDescribe" />
+      <Output TaskParameter="ExitCode" PropertyName="GitExitCode" />
+    </Exec>
+    <PropertyGroup>
+      <GitInformationalVersion Condition="'$(GitExitCode)' == '0' and '$(GitDescribe)' != ''">$(GitDescribe.TrimStart('v'))</GitInformationalVersion>
+      <GitInformationalVersion Condition="'$(GitInformationalVersion)' == ''">0.0.0</GitInformationalVersion>
+      <GitSemVer>$([System.Text.RegularExpressions.Regex]::Match($(GitInformationalVersion), `^\d+\.\d+\.\d+`).Value)</GitSemVer>
+      <GitSemVer Condition="'$(GitSemVer)' == ''">0.0.0</GitSemVer>
+      <GitAssemblyVersion>$(GitSemVer).0</GitAssemblyVersion>
+      <GeneratedVersionFile>$(IntermediateOutputPath)GitVersionInfo.cs</GeneratedVersionFile>
+    </PropertyGroup>
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <WriteLinesToFile File="$(GeneratedVersionFile)" Overwrite="true" Lines="// &lt;auto-generated /&gt;;using System.Reflection%3B;[assembly: AssemblyVersion(&quot;$(GitAssemblyVersion)&quot;)];[assembly: AssemblyFileVersion(&quot;$(GitAssemblyVersion)&quot;)];[assembly: AssemblyInformationalVersion(&quot;$(GitInformationalVersion)&quot;)]" />
+    <ItemGroup>
+      <Compile Include="$(GeneratedVersionFile)" />
+      <FileWrites Include="$(GeneratedVersionFile)" />
+    </ItemGroup>
+    <Message Importance="high" Text="SvgToXaml version: $(GitAssemblyVersion) (informational: $(GitInformationalVersion))" />
+  </Target>
 </Project>
