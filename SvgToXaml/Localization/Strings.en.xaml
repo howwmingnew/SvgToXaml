@@ -53,6 +53,8 @@
     <sys:String x:Key="S.Settings.Btn.Add">Add</sys:String>
     <sys:String x:Key="S.Settings.Btn.Remove">Remove</sys:String>
     <sys:String x:Key="S.Settings.Btn.ImportXaml">Import from XAML</sys:String>
+    <sys:String x:Key="S.Settings.Btn.EditXaml">Edit XAML</sys:String>
+    <sys:String x:Key="S.Settings.Edit.Title">Edit Design Tokens (XAML)</sys:String>
     <sys:String x:Key="S.Settings.Btn.OK">OK</sys:String>
     <sys:String x:Key="S.Settings.Btn.Cancel">Cancel</sys:String>
     <sys:String x:Key="S.Settings.Import.Title">Paste ResourceDictionary XAML</sys:String>

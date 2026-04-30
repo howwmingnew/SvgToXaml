@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
@@ -32,13 +33,16 @@ namespace SvgToXaml.ViewModels
                 _isCopyModeButton = true;
             }
 
-            // 載入 design tokens
+            // 載入 design tokens（依 Key 排序）
             DesignTokens = new ObservableCollection<DesignTokenEntryVm>(
-                DesignTokenStore.Load().Select(e => new DesignTokenEntryVm(e.Key, e.Color)));
+                DesignTokenStore.Load()
+                    .OrderBy(e => e.Key, StringComparer.Ordinal)
+                    .Select(e => new DesignTokenEntryVm(e.Key, e.Color)));
 
             AddTokenCommand = new DelegateCommand(AddTokenExecute);
             RemoveTokenCommand = new DelegateCommand<DesignTokenEntryVm>(RemoveTokenExecute);
             ImportFromXamlCommand = new DelegateCommand(ImportFromXamlExecute);
+            EditTokensXamlCommand = new DelegateCommand(EditTokensXamlExecute);
         }
 
         public bool IsCopyModeButton
@@ -72,6 +76,7 @@ namespace SvgToXaml.ViewModels
         public System.Windows.Input.ICommand AddTokenCommand { get; }
         public System.Windows.Input.ICommand RemoveTokenCommand { get; }
         public System.Windows.Input.ICommand ImportFromXamlCommand { get; }
+        public System.Windows.Input.ICommand EditTokensXamlCommand { get; }
 
         private void AddTokenExecute()
         {
@@ -99,6 +104,78 @@ namespace SvgToXaml.ViewModels
                 if (existing != null) existing.Color = entry.Color;
                 else DesignTokens.Add(new DesignTokenEntryVm(entry.Key, entry.Color));
             }
+            SortTokens();
+        }
+
+        private void EditTokensXamlExecute()
+        {
+            var dlg = new ImportXamlDialog
+            {
+                InitialText = SerializeCurrentTokens(),
+                TitleOverride = LanguageManager.GetString("S.Settings.Edit.Title"),
+            };
+            var owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive);
+            if (owner != null) dlg.Owner = owner;
+            if (dlg.ShowDialog() != true) return;
+            var imported = dlg.ImportedTokens;
+            if (imported == null) return;
+
+            // Edit 模式：完整取代目前 tokens（與 Import 的合併行為不同）
+            DesignTokens.Clear();
+            foreach (var entry in imported.OrderBy(e => e.Key, StringComparer.Ordinal))
+            {
+                DesignTokens.Add(new DesignTokenEntryVm(entry.Key, entry.Color));
+            }
+        }
+
+        /// <summary>
+        /// 把目前 token 集合重新依 Key 排序（穩定，不影響使用者輸入中的條目除非 commit 後）。
+        /// </summary>
+        private void SortTokens()
+        {
+            var sorted = DesignTokens.OrderBy(e => e.Key, StringComparer.Ordinal).ToList();
+            for (int i = 0; i < sorted.Count; i++)
+            {
+                var current = sorted[i];
+                var idx = DesignTokens.IndexOf(current);
+                if (idx != i) DesignTokens.Move(idx, i);
+            }
+        }
+
+        /// <summary>
+        /// 把目前 tokens 序列化成 ResourceDictionary XAML 文字（給 Edit 對話框預填用）。
+        /// </summary>
+        private string SerializeCurrentTokens()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("<ResourceDictionary xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"");
+            sb.AppendLine("                    xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\">");
+            sb.AppendLine();
+            var ordered = DesignTokens
+                .Where(t => !string.IsNullOrWhiteSpace(t.Key) && !string.IsNullOrWhiteSpace(t.Color))
+                .OrderBy(t => t.Key, StringComparer.Ordinal);
+            foreach (var t in ordered)
+            {
+                var color = DesignTokenSet.NormalizeColor(t.Color) ?? t.Color;
+                sb.Append("    <SolidColorBrush x:Key=\"");
+                sb.Append(EscapeXmlAttribute(t.Key));
+                sb.Append("\" Color=\"");
+                sb.Append(color);
+                sb.AppendLine("\" />");
+            }
+            sb.AppendLine();
+            sb.Append("</ResourceDictionary>");
+            return sb.ToString();
+        }
+
+        private static string EscapeXmlAttribute(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return string.Empty;
+            return value
+                .Replace("&", "&amp;")
+                .Replace("\"", "&quot;")
+                .Replace("<", "&lt;")
+                .Replace(">", "&gt;");
         }
 
         /// <summary>

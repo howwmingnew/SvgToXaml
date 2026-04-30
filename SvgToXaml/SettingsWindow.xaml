@@ -16,6 +16,25 @@
     d:DataContext="{d:DesignInstance viewModels:SettingsViewModel}"
     mc:Ignorable="d">
     <Window.Resources>
+        <!-- DataGrid cell display style：垂直置中、padding 一致 -->
+        <Style x:Key="GridCellTextStyle" TargetType="TextBlock">
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="#FFCCCCCC" />
+        </Style>
+
+        <!-- DataGrid cell editing style：TextBox 對齊 + 移除多餘邊框 -->
+        <Style x:Key="GridCellEditStyle" TargetType="TextBox">
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="#FF1E1E1E" />
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+            <Setter Property="CaretBrush" Value="#FFCCCCCC" />
+            <Setter Property="SelectionBrush" Value="#FF264F78" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+        </Style>
+
         <!-- Section title -->
         <Style x:Key="SectionTitle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="13" />
@@ -248,26 +267,61 @@
                           HorizontalGridLinesBrush="#FF3F3F46"
                           ItemsSource="{Binding DesignTokens}"
                           RowBackground="#FF252526"
+                          RowHeight="32"
                           AlternatingRowBackground="#FF2A2A2C"
                           SelectionMode="Single"
                           SelectionUnit="FullRow">
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGridCell">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                Padding="0"
+                                                SnapsToDevicePixels="True">
+                                            <ContentPresenter VerticalAlignment="Center" />
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#40264F78" />
+                                    <Setter Property="Foreground" Value="#FFFFFFFF" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.CellStyle>
                     <DataGrid.Columns>
                         <DataGridTextColumn Width="*"
                                             Binding="{Binding Key, UpdateSourceTrigger=PropertyChanged}"
+                                            EditingElementStyle="{StaticResource GridCellEditStyle}"
+                                            ElementStyle="{StaticResource GridCellTextStyle}"
                                             Header="{DynamicResource S.Settings.DesignTokens.Col.Key}" />
                         <DataGridTextColumn Width="160"
                                             Binding="{Binding Color, UpdateSourceTrigger=PropertyChanged}"
+                                            EditingElementStyle="{StaticResource GridCellEditStyle}"
+                                            ElementStyle="{StaticResource GridCellTextStyle}"
                                             Header="{DynamicResource S.Settings.DesignTokens.Col.Color}" />
                         <DataGridTemplateColumn Width="80"
                                                 Header="{DynamicResource S.Settings.DesignTokens.Col.Preview}"
                                                 IsReadOnly="True">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border Margin="6,2"
+                                    <Border Margin="6,3"
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Stretch"
+                                            MinHeight="18"
                                             Background="{Binding PreviewBrush}"
                                             BorderBrush="#FF555555"
                                             BorderThickness="1"
-                                            CornerRadius="2" />
+                                            CornerRadius="2"
+                                            SnapsToDevicePixels="True" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -284,6 +338,9 @@
                             Style="{StaticResource DialogButton}" />
                     <Button Command="{Binding ImportFromXamlCommand}"
                             Content="{DynamicResource S.Settings.Btn.ImportXaml}"
+                            Style="{StaticResource DialogButton}" />
+                    <Button Command="{Binding EditTokensXamlCommand}"
+                            Content="{DynamicResource S.Settings.Btn.EditXaml}"
                             Style="{StaticResource DialogButton}" />
                 </StackPanel>
             </Grid>

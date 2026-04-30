@@ -53,6 +53,8 @@
     <sys:String x:Key="S.Settings.Btn.Add">新增</sys:String>
     <sys:String x:Key="S.Settings.Btn.Remove">刪除</sys:String>
     <sys:String x:Key="S.Settings.Btn.ImportXaml">從 XAML 匯入</sys:String>
+    <sys:String x:Key="S.Settings.Btn.EditXaml">編輯 XAML</sys:String>
+    <sys:String x:Key="S.Settings.Edit.Title">編輯 Design Tokens（XAML）</sys:String>
     <sys:String x:Key="S.Settings.Btn.OK">確定</sys:String>
     <sys:String x:Key="S.Settings.Btn.Cancel">取消</sys:String>
     <sys:String x:Key="S.Settings.Import.Title">貼上 ResourceDictionary XAML</sys:String>
