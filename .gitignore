@@ -99,6 +99,8 @@ UpgradeLog.XML
 ehthumbs.db
 Thumbs.db
 nul
+# Cygwin / MSYS crash dumps
+*.stackdump
 
 Tempeverything-claude-code/
 
