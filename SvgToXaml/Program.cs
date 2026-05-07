@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using SvgConverter;
 using SvgToXaml.Infrastructure;
 using SvgToXaml.Properties;
@@ -19,7 +20,7 @@ namespace SvgToXaml
             int exitCode = 0;
             if (args.Length > 0)
             {
-                RunConsole(args);
+                exitCode = RunConsole(args);
             }
             else
             {   //normale WPF-Applikationslogik
@@ -53,13 +54,28 @@ namespace SvgToXaml
             }
         }
 
-        private static void RunConsole(string[] args)
+        private static int RunConsole(string[] args)
         {
+            // WinExe 啟動時 Console.Out / Error 預設綁到 NUL handle。
+            // 在呼叫 AttachConsole 之前先把 Console.Out/Error 綁回真正的 STD handle，
+            // 這樣即使 cmd 用 `>` / `2>` 已經重導向 stdout/stderr，輸出也能流到目標檔案 / pipe。
+            // 順序很重要：必須在 AttachConsole 之前抓 handle，AttachConsole 只在 handle 為 NUL 時才會用 console buffer 覆蓋。
+            try
+            {
+                Console.SetOut(new StreamWriter(Console.OpenStandardOutput(), new UTF8Encoding(false)) { AutoFlush = true });
+                Console.SetError(new StreamWriter(Console.OpenStandardError(), new UTF8Encoding(false)) { AutoFlush = true });
+            }
+            catch
+            {
+                // 若 handle 綁定失敗（極少數情況），維持原本行為，至少不要 crash
+            }
+
             HConsoleHelper.InitConsoleHandles();
 
-            CmdLineHandler.HandleCommandLine(args);
+            int exitCode = CmdLineHandler.HandleCommandLine(args);
 
             HConsoleHelper.ReleaseConsoleHandles();
+            return exitCode;
         }
 
         private static readonly Dictionary<string, Assembly> LoadedAsmsCache = new Dictionary<string, Assembly>(StringComparer.InvariantCultureIgnoreCase);

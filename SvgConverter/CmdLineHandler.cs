@@ -15,7 +15,10 @@ namespace SvgConverter
             var clp = new CommandLineParser { SkipCommandsWhenHelpRequested = true };
 
             clp.Target = new CmdLineTarget();
-            clp.Header = "SvgToXaml - Tool to convert SVGs to a Dictionary\r\n(c) 2015 Bernd Klaiber";
+            // 把 banner 印到 stderr，避免污染 stdout 的指令輸出（例如 Convert 用 stdout 回傳 XAML）
+            Console.Error.WriteLine("SvgToXaml - Tool to convert SVGs to a Dictionary");
+            Console.Error.WriteLine("(c) 2015 Bernd Klaiber");
+            clp.Header = "";
             clp.LogErrorsToConsole = true;
             try
             {
@@ -24,7 +27,7 @@ namespace SvgConverter
             catch (Exception)
             {
                 //nothing to do, the errors are hopefully already reported via CommandLineParser
-                Console.WriteLine("Error while handling Commandline.");
+                Console.Error.WriteLine("Error while handling Commandline.");
                 return -1;
             }
         }

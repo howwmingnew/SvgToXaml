@@ -8,7 +8,7 @@ using BKLib.CommandLineParser;
 
 namespace SvgConverter
 {
-    public class CmdLineTarget : SimpleBaseTarget
+    public partial class CmdLineTarget : SimpleBaseTarget
     {
         [ArgumentCommand(LongDesc = "Creates a ResourceDictionary with the svg-Images of a folder")]
         public int BuildDict(
