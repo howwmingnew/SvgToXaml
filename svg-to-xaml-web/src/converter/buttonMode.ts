@@ -1,5 +1,5 @@
 import type { GeometryResult } from '../types';
-import { validateName } from './xamlFormatter';
+import { validateName, withFillRule } from './xamlFormatter';
 import { generateResourceKey, collectBrush } from './geometryMode';
 
 /**
@@ -47,7 +47,7 @@ export function generateButtonXaml(result: GeometryResult, filename: string): st
       const rect = entry.geometryAttrs['Rect'] || '0,0,1,1';
       lines.push(`<RectangleGeometry x:Key="${geoKey}" Rect="${rect}" />`);
     } else if (entry.data) {
-      lines.push(`<Geometry x:Key="${geoKey}">${entry.data}</Geometry>`);
+      lines.push(`<Geometry x:Key="${geoKey}">${withFillRule(entry.data, entry.fillRule)}</Geometry>`);
     }
 
     geoKeys.push(geoKey);

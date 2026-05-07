@@ -33,6 +33,11 @@ export interface GeometryEntry {
   strokeEndLineCap: string | null;
   strokeLineJoin: string | null;
   strokeMiterLimit: string | null;
+  // SVG 預設 fill-rule = nonzero；WPF Path mini-language 預設 = EvenOdd。
+  // 這欄位告訴輸出器要在 path data 前加 F1 (Nonzero) 或 F0 (EvenOdd)，
+  // 缺了會讓含重疊 sub-path 的 icon 在 WPF 顯示破洞（Figma export 的 stroke-to-fill icon 是常見受害者）。
+  // EllipseGeometry / RectangleGeometry 為單一閉合形狀且 WPF type 沒有 FillRule 屬性，可填 null。
+  fillRule: 'Nonzero' | 'EvenOdd' | null;
 }
 
 export interface GeometryResult {

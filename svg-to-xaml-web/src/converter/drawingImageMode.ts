@@ -1,5 +1,5 @@
 import type { GeometryResult } from '../types';
-import { validateName } from './xamlFormatter';
+import { validateName, withFillRule } from './xamlFormatter';
 
 /**
  * Generate DrawingImage-mode XAML output.
@@ -56,13 +56,14 @@ export function generateDrawingImageXaml(result: GeometryResult, filename: strin
       if (entry.stroke) appendPen(lines, entry);
       lines.push(`      </GeometryDrawing>`);
     } else if (entry.data) {
+      const geoData = withFillRule(entry.data, entry.fillRule);
       if (entry.stroke) {
-        attrs.push(`Geometry="${entry.data}"`);
+        attrs.push(`Geometry="${geoData}"`);
         lines.push(`      <GeometryDrawing ${attrs.join(' ')}>`);
         appendPen(lines, entry);
         lines.push(`      </GeometryDrawing>`);
       } else {
-        attrs.push(`Geometry="${entry.data}"`);
+        attrs.push(`Geometry="${geoData}"`);
         lines.push(`      <GeometryDrawing ${attrs.join(' ')} />`);
       }
     }

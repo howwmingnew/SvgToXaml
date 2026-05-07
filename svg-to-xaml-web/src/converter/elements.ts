@@ -70,6 +70,11 @@ function createBaseEntry(el: Element): Partial<GeometryEntry> {
   const strokeLinejoin = getEffectiveAttribute(el, 'stroke-linejoin');
   const strokeMiterlimit = stripCssUnits(getEffectiveAttribute(el, 'stroke-miterlimit'));
 
+  // SVG 規範 fill-rule 預設 = nonzero（與 WPF Path 預設的 evenodd 不同），
+  // 沒帶到輸出端就會在重疊 sub-path 上算錯破洞。
+  const fillRuleAttr = (getInheritedAttribute(el, 'fill-rule') || 'nonzero').trim().toLowerCase();
+  const fillRule: 'Nonzero' | 'EvenOdd' = fillRuleAttr === 'evenodd' ? 'EvenOdd' : 'Nonzero';
+
   // Default fill is black if neither fill nor stroke specified
   const effectiveFill = fill === undefined ? (stroke ? null : '#FF000000') : fill;
   const normalizedFill = effectiveFill ? normalizeToWpfColor(effectiveFill) : null;
@@ -83,6 +88,7 @@ function createBaseEntry(el: Element): Partial<GeometryEntry> {
     strokeEndLineCap: strokeLinecap ? capitalizeLineCap(strokeLinecap) : null,
     strokeLineJoin: strokeLinejoin ? capitalize(strokeLinejoin) : null,
     strokeMiterLimit: strokeMiterlimit || null,
+    fillRule,
     geometryAttrs: {},
   };
 }
@@ -136,6 +142,7 @@ function processPath(el: Element, matrix: DOMMatrix, entries: GeometryEntry[]): 
     strokeEndLineCap: base.strokeEndLineCap || null,
     strokeLineJoin: base.strokeLineJoin || null,
     strokeMiterLimit: base.strokeMiterLimit || null,
+    fillRule: base.fillRule ?? 'Nonzero',
   });
 }
 
@@ -161,6 +168,7 @@ function processCircle(el: Element, matrix: DOMMatrix, entries: GeometryEntry[])
       strokeEndLineCap: base.strokeEndLineCap || null,
       strokeLineJoin: base.strokeLineJoin || null,
       strokeMiterLimit: base.strokeMiterLimit || null,
+      fillRule: base.fillRule ?? 'Nonzero',
     });
   } else {
     // Convert to path for transform
@@ -176,6 +184,7 @@ function processCircle(el: Element, matrix: DOMMatrix, entries: GeometryEntry[])
       strokeEndLineCap: base.strokeEndLineCap || null,
       strokeLineJoin: base.strokeLineJoin || null,
       strokeMiterLimit: base.strokeMiterLimit || null,
+      fillRule: base.fillRule ?? 'Nonzero',
     });
   }
 }
@@ -203,6 +212,7 @@ function processEllipse(el: Element, matrix: DOMMatrix, entries: GeometryEntry[]
       strokeEndLineCap: base.strokeEndLineCap || null,
       strokeLineJoin: base.strokeLineJoin || null,
       strokeMiterLimit: base.strokeMiterLimit || null,
+      fillRule: base.fillRule ?? 'Nonzero',
     });
   } else {
     const pathData = ellipseToPath(cx, cy, rx, ry);
@@ -217,6 +227,7 @@ function processEllipse(el: Element, matrix: DOMMatrix, entries: GeometryEntry[]
       strokeEndLineCap: base.strokeEndLineCap || null,
       strokeLineJoin: base.strokeLineJoin || null,
       strokeMiterLimit: base.strokeMiterLimit || null,
+      fillRule: base.fillRule ?? 'Nonzero',
     });
   }
 }
@@ -247,6 +258,7 @@ function processRect(el: Element, matrix: DOMMatrix, entries: GeometryEntry[]): 
       strokeEndLineCap: base.strokeEndLineCap || null,
       strokeLineJoin: base.strokeLineJoin || null,
       strokeMiterLimit: base.strokeMiterLimit || null,
+      fillRule: base.fillRule ?? 'Nonzero',
     });
   } else {
     const pathData = rectToPath(x, y, w, h, rx, ry);
@@ -262,6 +274,7 @@ function processRect(el: Element, matrix: DOMMatrix, entries: GeometryEntry[]): 
       strokeEndLineCap: base.strokeEndLineCap || null,
       strokeLineJoin: base.strokeLineJoin || null,
       strokeMiterLimit: base.strokeMiterLimit || null,
+      fillRule: base.fillRule ?? 'Nonzero',
     });
   }
 }
@@ -291,6 +304,7 @@ function processLine(el: Element, matrix: DOMMatrix, entries: GeometryEntry[]): 
     strokeEndLineCap: base.strokeEndLineCap || null,
     strokeLineJoin: base.strokeLineJoin || null,
     strokeMiterLimit: base.strokeMiterLimit || null,
+    fillRule: base.fillRule ?? 'Nonzero',
   });
 }
 
@@ -317,6 +331,7 @@ function processPolygon(el: Element, matrix: DOMMatrix, entries: GeometryEntry[]
     strokeEndLineCap: base.strokeEndLineCap || null,
     strokeLineJoin: base.strokeLineJoin || null,
     strokeMiterLimit: base.strokeMiterLimit || null,
+    fillRule: base.fillRule ?? 'Nonzero',
   });
 }
 
@@ -343,6 +358,7 @@ function processPolyline(el: Element, matrix: DOMMatrix, entries: GeometryEntry[
     strokeEndLineCap: base.strokeEndLineCap || null,
     strokeLineJoin: base.strokeLineJoin || null,
     strokeMiterLimit: base.strokeMiterLimit || null,
+    fillRule: base.fillRule ?? 'Nonzero',
   });
 }
 

@@ -1,5 +1,5 @@
 import type { GeometryEntry, GeometryResult } from '../types';
-import { validateName } from './xamlFormatter';
+import { validateName, withFillRule } from './xamlFormatter';
 
 /**
  * Generate resource key name with automatic color and shape hints.
@@ -97,7 +97,7 @@ export function generateGeometryXaml(result: GeometryResult, filename: string): 
       const rect = entry.geometryAttrs['Rect'] || '0,0,1,1';
       lines.push(`<RectangleGeometry x:Key="${geoKey}" Rect="${rect}" />`);
     } else if (entry.data) {
-      lines.push(`<Geometry x:Key="${geoKey}">${entry.data}</Geometry>`);
+      lines.push(`<Geometry x:Key="${geoKey}">${withFillRule(entry.data, entry.fillRule)}</Geometry>`);
     }
 
     geoKeys.push(geoKey);
