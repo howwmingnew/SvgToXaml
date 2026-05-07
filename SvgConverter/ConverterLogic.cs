@@ -647,12 +647,14 @@ namespace SvgConverter
         }
 
         /// <summary>
-        /// 清理 Geometry 字串：移除 FillRule 前綴和定位用退化圖形
+        /// 清理 Geometry 字串：移除 SizeGeometry 注入的退化定位點，保留 FillRule 前綴。
+        /// 注意：F0/F1 前綴必須保留，否則 WPF 解析 Path.Data / Geometry 字串時會 fallback 到預設的
+        /// EvenOdd 規則；當 SVG 是 nonzero 又含重疊 sub-path（例如 stroke-to-fill 組成的箭頭）時，
+        /// 重疊區域會被異或掉造成視覺破洞。
         /// </summary>
         private static string CleanGeometryString(string geo)
         {
             geo = geo.Trim();
-            geo = Regex.Replace(geo, @"^F[01]\s+", "");
             geo = Regex.Replace(geo, @"M[\d.\-]+,[\d.\-]+z\s*", "");
             return geo.Trim();
         }

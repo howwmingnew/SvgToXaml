@@ -282,6 +282,23 @@ namespace SvgConverterTest
             ConverterLogic.GetElemNameFromResKey("{x:Static NameSpaceName:XamlName.ElementNameKey}", ResKeyInfoUseCompResKey).Should().Be("ElementName");
         }
 
+        /// <summary>
+        /// 迴歸測試：geometry 格式輸出必須保留 SharpVectors 給的 FillRule (F1=Nonzero) 前綴。
+        /// 拿掉前綴會讓 WPF Path.Data 解析時 fallback 成預設的 EvenOdd，
+        /// 對於含重疊 sub-path 的 SVG（如 Figma 匯出的 stroke-to-fill icon）會在重疊區出現破洞。
+        /// 這個 SVG 的箭頭由兩個矩形 sub-path 組成且互相重疊，是這個 bug 的最小復現案例。
+        /// </summary>
+        [Test, STAThread]
+        public void GeometryData_PreservesFillRulePrefix_ForOverlappingSubPaths()
+        {
+            var data = ConverterLogic.ConvertSvg("TestFiles\\ico_reset_sm.svg", ResultMode.DrawingImage);
+            var geo = data.GeometryData;
+
+            geo.Should().NotBeNullOrEmpty();
+            // F1 = Nonzero（SVG 預設）。若 fallback 成 EvenOdd，箭頭重疊處會被異或成空洞。
+            geo.Should().Contain("F1 ", "geometry XAML 必須保留 Nonzero FillRule 前綴，否則含重疊 sub-path 的 icon 會渲染破洞");
+        }
+
         [Test]
         public void GetCorrectClippingElement()
         {
