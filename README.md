@@ -80,15 +80,60 @@ Given a token `Brand.Primary = #FF0066CC` and an SVG that uses `#0066CC` (alpha-
 
 Tokens are stored in `%APPDATA%\SvgToXaml\design-tokens.txt` and applied to **both** click-to-copy and folder export.
 
-### Batch Conversion (CLI)
+### Command-line Interface (CLI)
 
-SvgToXaml doubles as a CLI tool. Run with parameters to skip the GUI:
+`SvgToXaml.exe` doubles as a CLI for automation pipelines and AI agent integration — for example feeding Figma-exported SVGs through Claude Code, MCP workflows, or CI/CD. Two commands are available.
+
+#### `Convert` — single file or folder, multiple output formats
+
+Convert one SVG (or every SVG in a folder) and emit XAML to a file, a folder, or stdout.
+
+```bash
+# Single file → stdout (default format: geometry)
+SvgToXaml.exe Convert /input icon.svg
+
+# Single file → specific output file
+SvgToXaml.exe Convert /input icon.svg /output icon.xaml
+
+# Choose output format
+SvgToXaml.exe Convert /input icon.svg /format button         # Button + hover/pressed triggers
+SvgToXaml.exe Convert /input icon.svg /format drawingimage   # Legacy DrawingImage
+
+# Folder batch → output folder
+SvgToXaml.exe Convert /input ./icons /output ./xaml /recurse
+
+# Folder batch → stdout (each file separated by `<!-- ===== filename ===== -->`)
+SvgToXaml.exe Convert /input ./icons
+
+# Read SVG from stdin — no temp file needed (great for piping curl/Figma asset URLs)
+curl -s "https://example.com/icon.svg" | SvgToXaml.exe Convert /input - /name brush
+```
+
+**Output formats:**
+- `geometry` *(default)* — `Path`-based `ContentControl` style, recolorable via `Foreground`
+- `button` — Full `Button` style with `IsMouseOver` / `IsPressed` triggers
+- `drawingimage` — Legacy `DrawingImage` (also the automatic fallback when an SVG contains gradients or clip paths)
+
+**Inputs:**
+- File path — single SVG (`.svg` / `.svgz`)
+- Folder path — batch convert every SVG inside (`/recurse` to descend)
+- `-` (dash) — read SVG content from **stdin**; pair with `/name <baseName>` so resource keys are meaningful (defaults to `Icon` if omitted)
+
+**Streams:**
+- **stdout** — pure XAML (when `/output` is omitted)
+- **stderr** — banner, warnings, write confirmations, errors
+
+**Exit codes:** `0` success · `1` IO / conversion error · `2` invalid arguments
+
+> **Note:** SvgToXaml is a Windows GUI app (WinExe). When invoking from PowerShell, Bash, or any non-`cmd` shell, wrap the call with `cmd /c "..."` so the parent process waits for completion and stdout redirection captures the output.
+
+#### `BuildDict` — generate a single `ResourceDictionary`
 
 ```
 SvgToXaml.exe BuildDict /inputdir:".\svg" /outputname:icons /outputdir:"."
 ```
 
-This produces `icons.xaml` — a `ResourceDictionary` you can merge into your app:
+Produces `icons.xaml` — a `ResourceDictionary` you can merge into your app:
 
 ```xml
 <Application.Resources>
@@ -100,13 +145,19 @@ This produces `icons.xaml` — a `ResourceDictionary` you can merge into your ap
 </Application.Resources>
 ```
 
-Then use icons in XAML:
+Then reference an icon:
 
 ```xml
 <Path Data="{StaticResource cloud_iconGeometry}" Fill="{Binding Foreground}" />
 ```
 
-Run `SvgToXaml.exe /?` for full CLI help.
+#### Help
+
+```
+SvgToXaml.exe /?              # list all commands
+SvgToXaml.exe Convert /?      # parameter details for Convert
+SvgToXaml.exe BuildDict /?    # parameter details for BuildDict
+```
 
 ## Tech Stack
 

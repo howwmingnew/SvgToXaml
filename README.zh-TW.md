@@ -80,15 +80,60 @@ msbuild SvgToXaml.sln /p:Configuration=Release
 
 Tokens 儲存於 `%APPDATA%\SvgToXaml\design-tokens.txt`，**單擊複製**與**批次匯出**都會套用。
 
-### 批次轉換（命令列）
+### 命令列介面（CLI）
 
-SvgToXaml 同時支援命令列模式。帶入參數即可跳過圖形介面：
+`SvgToXaml.exe` 同時支援命令列模式，適用於自動化流程或 AI agent 整合 — 例如把 Figma 匯出的 SVG 餵給 Claude Code、串接 MCP 工作流，或接到 CI/CD 上。共有兩個指令。
+
+#### `Convert` — 單檔或資料夾，多種輸出格式
+
+轉換單一 SVG 或整個資料夾的 SVG，輸出到檔案、資料夾或 stdout。
+
+```bash
+# 單檔 → stdout（預設格式：geometry）
+SvgToXaml.exe Convert /input icon.svg
+
+# 單檔 → 指定檔案
+SvgToXaml.exe Convert /input icon.svg /output icon.xaml
+
+# 切換輸出格式
+SvgToXaml.exe Convert /input icon.svg /format button         # Button 含 hover/pressed 觸發器
+SvgToXaml.exe Convert /input icon.svg /format drawingimage   # 舊版 DrawingImage
+
+# 資料夾批次 → 輸出資料夾
+SvgToXaml.exe Convert /input ./icons /output ./xaml /recurse
+
+# 資料夾批次 → stdout（每個檔案以 `<!-- ===== filename ===== -->` 分隔）
+SvgToXaml.exe Convert /input ./icons
+
+# 從 stdin 讀 SVG — 不產生暫存檔（適合直接 pipe curl 或 Figma asset URL）
+curl -s "https://example.com/icon.svg" | SvgToXaml.exe Convert /input - /name brush
+```
+
+**輸出格式：**
+- `geometry`（預設） — 以 `Path` 為基礎的 `ContentControl` 樣板，可透過 `Foreground` 動態換色
+- `button` — 完整 `Button` 樣板，含 `IsMouseOver` / `IsPressed` 觸發器
+- `drawingimage` — 舊版 `DrawingImage` 格式（含漸層或 clip path 的 SVG 也會自動 fallback 到此格式）
+
+**輸入來源：**
+- 檔案路徑 — 單一 SVG(`.svg` / `.svgz`)
+- 資料夾路徑 — 批次轉換內部所有 SVG(`/recurse` 遞迴子資料夾)
+- `-`(短橫線) — 從 **stdin** 讀 SVG 內容,搭配 `/name <baseName>` 讓 resource key 有意義(省略時預設為 `Icon`)
+
+**輸出流:**
+- **stdout** — 純 XAML 內容(省略 `/output` 時)
+- **stderr** — banner、警告、寫檔確認訊息、錯誤訊息
+
+**Exit code:** `0` 成功 · `1` IO / 轉換錯誤 · `2` 參數錯誤
+
+> **注意：** SvgToXaml 是 Windows GUI 應用程式（WinExe）。從 PowerShell、Bash 或非 `cmd` shell 呼叫時請用 `cmd /c "..."` 包裝,父程序才會等子程序結束、stdout 重導向也才能正確擷取輸出。
+
+#### `BuildDict` — 產生單一 `ResourceDictionary`
 
 ```
 SvgToXaml.exe BuildDict /inputdir:".\svg" /outputname:icons /outputdir:"."
 ```
 
-這會產生 `icons.xaml` — 一個可合併到應用程式的 `ResourceDictionary`：
+會產生 `icons.xaml` — 可合併到應用程式的 `ResourceDictionary`：
 
 ```xml
 <Application.Resources>
@@ -106,7 +151,13 @@ SvgToXaml.exe BuildDict /inputdir:".\svg" /outputname:icons /outputdir:"."
 <Path Data="{StaticResource cloud_iconGeometry}" Fill="{Binding Foreground}" />
 ```
 
-執行 `SvgToXaml.exe /?` 查看完整命令列說明。
+#### Help 指令
+
+```
+SvgToXaml.exe /?              # 列出所有指令
+SvgToXaml.exe Convert /?      # Convert 的完整參數說明
+SvgToXaml.exe BuildDict /?    # BuildDict 的完整參數說明
+```
 
 ## 技術棧
 
