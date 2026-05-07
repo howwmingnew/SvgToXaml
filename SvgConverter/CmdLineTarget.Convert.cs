@@ -14,10 +14,11 @@ namespace SvgConverter
     {
         [ArgumentCommand(LongDesc = "Convert one SVG (or all SVGs in a folder) to WPF XAML. " +
                                     "Output formats: geometry (Path-based, recolorable), button (Button style with hover/pressed), drawingimage (legacy DrawingImage). " +
-                                    "Omit -output to write to stdout.")]
+                                    "Pass '-' as input to read SVG from stdin (e.g. piping curl output). " +
+                                    "Omit -output to write XAML to stdout.")]
         public int Convert(
-            [ArgumentParam(Aliases = "i", Desc = "input svg file or folder",
-                LongDesc = "path to a single .svg/.svgz file, or a folder containing svg files")]
+            [ArgumentParam(Aliases = "i", Desc = "input svg file, folder, or '-' for stdin",
+                LongDesc = "path to a single .svg/.svgz file, a folder containing svg files, or '-' to read SVG content from stdin")]
             string input,
             [ArgumentParam(Aliases = "o", DefaultValue = null, ExplicitNeeded = false,
                 LongDesc = "output xaml file (single input) or folder (folder input); omit to write to stdout")]
@@ -27,7 +28,10 @@ namespace SvgConverter
             string format = "geometry",
             [ArgumentParam(DefaultValue = false, ExplicitNeeded = false,
                 LongDesc = "recurse into subfolders when input is a folder (default: false)")]
-            bool recurse = false)
+            bool recurse = false,
+            [ArgumentParam(Aliases = "n", DefaultValue = null, ExplicitNeeded = false,
+                LongDesc = "override resource key base name (defaults to filename without extension; recommended when reading from stdin so keys are meaningful)")]
+            string name = null)
         {
             var fmt = NormalizeFormat(format);
             if (fmt == null)
@@ -42,6 +46,12 @@ namespace SvgConverter
                 return 2;
             }
 
+            if (input == "-")
+                return ConvertFromStdin(output, fmt, name);
+
+            if (!string.IsNullOrEmpty(name))
+                Console.Error.WriteLine("Note: /name is only honored when reading from stdin; ignored for file/folder input (resource keys follow the filename).");
+
             if (File.Exists(input))
                 return ConvertSingleFile(input, output, fmt);
 
@@ -50,6 +60,55 @@ namespace SvgConverter
 
             Console.Error.WriteLine("Error: input not found: {0}", input);
             return 1;
+        }
+
+        /// <summary>
+        /// 從 stdin 讀 SVG 內容，寫到暫存檔後沿用既有 ConvertSingleFile 流程。
+        /// 暫存資料夾名稱含 GUID 避免併發衝突；轉完無論成敗都清掉。
+        /// </summary>
+        private static int ConvertFromStdin(string output, string fmt, string name)
+        {
+            string svg;
+            try
+            {
+                svg = Console.In.ReadToEnd();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("Error reading stdin: {0}", ex.Message);
+                return 1;
+            }
+
+            if (string.IsNullOrWhiteSpace(svg))
+            {
+                Console.Error.WriteLine("Error: stdin is empty (did you forget to pipe content in?)");
+                return 1;
+            }
+
+            var safeName = SanitizeForFilename(string.IsNullOrEmpty(name) ? "Icon" : name);
+            var tempDir = Path.Combine(Path.GetTempPath(), "SvgToXaml_" + Guid.NewGuid().ToString("N").Substring(0, 8));
+            try
+            {
+                Directory.CreateDirectory(tempDir);
+                var tempFile = Path.Combine(tempDir, safeName + ".svg");
+                File.WriteAllText(tempFile, svg);
+                return ConvertSingleFile(tempFile, output, fmt);
+            }
+            finally
+            {
+                try { if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true); }
+                catch { /* best-effort cleanup; OS will handle %TEMP% eventually */ }
+            }
+        }
+
+        private static string SanitizeForFilename(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return "Icon";
+            var invalid = Path.GetInvalidFileNameChars();
+            var chars = new char[s.Length];
+            for (int i = 0; i < s.Length; i++)
+                chars[i] = Array.IndexOf(invalid, s[i]) >= 0 ? '_' : s[i];
+            return new string(chars);
         }
 
         private static int ConvertSingleFile(string svgFile, string output, string fmt)

@@ -64,6 +64,8 @@ namespace SvgToXaml
             {
                 Console.SetOut(new StreamWriter(Console.OpenStandardOutput(), new UTF8Encoding(false)) { AutoFlush = true });
                 Console.SetError(new StreamWriter(Console.OpenStandardError(), new UTF8Encoding(false)) { AutoFlush = true });
+                // stdin 同樣需要重綁,否則 `curl ... | exe Convert /input -` 拿不到內容
+                Console.SetIn(new StreamReader(Console.OpenStandardInput(), new UTF8Encoding(false)));
             }
             catch
             {
