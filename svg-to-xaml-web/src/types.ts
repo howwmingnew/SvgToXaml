@@ -45,6 +45,8 @@ export interface GeometryResult {
   isComplex: boolean;
   width: number;
   height: number;
+  // fill/stroke 為 url(#id) 時，這裡放解析好的漸層定義（id → GradientInfo）。
+  gradients?: Map<string, import('./converter/gradients').GradientInfo>;
 }
 
 export type ExportFormat = 'resourceDictionary' | 'userControl' | 'zip';

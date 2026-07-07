@@ -1,6 +1,7 @@
 import type { ConversionResult, GeometryResult } from '../types';
 import { parseSvgDocument, parseViewBox } from './svgParser';
 import { detectComplexity } from './complexity';
+import { parseGradients } from './gradients';
 import { extractEntries } from './elements';
 import { generateGeometryXaml } from './geometryMode';
 import { generateDrawingImageXaml } from './drawingImageMode';
@@ -21,12 +22,14 @@ export function convertSvgToXaml(svgContent: string, filename: string): Conversi
   const isComplex = detectComplexity(doc);
   const viewBox = parseViewBox(svg);
   const entries = extractEntries(svg);
+  const gradients = parseGradients(doc);
 
   const geoResult: GeometryResult = {
     entries,
     isComplex,
     width: viewBox.width,
     height: viewBox.height,
+    gradients,
   };
 
   const geometry = generateGeometryXaml(geoResult, filename);

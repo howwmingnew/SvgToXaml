@@ -1,5 +1,6 @@
 import type { GeometryResult } from '../types';
 import { validateName, withFillRule } from './xamlFormatter';
+import { isGradientRef, gradientRefId, gradientBrushLines } from './gradients';
 
 /**
  * Generate DrawingImage-mode XAML output.
@@ -20,9 +21,11 @@ export function generateDrawingImageXaml(result: GeometryResult, filename: strin
 
   for (const entry of entries) {
     const attrs: string[] = [];
+    const children: string[] = [];
+    const fillIsGradient = !!entry.fill && isGradientRef(entry.fill);
 
-    // Brush
-    if (entry.fill) {
+    // Solid fill → Brush attribute（漸層改用 child element，見下方）
+    if (entry.fill && !fillIsGradient) {
       attrs.push(`Brush="${entry.fill}"`);
     }
 
@@ -31,41 +34,42 @@ export function generateDrawingImageXaml(result: GeometryResult, filename: strin
       const center = entry.geometryAttrs['Center'] || '0,0';
       const rx = entry.geometryAttrs['RadiusX'] || '1';
       const ry = entry.geometryAttrs['RadiusY'] || '1';
-
-      if (entry.stroke) {
-        lines.push(`      <GeometryDrawing ${attrs.join(' ')}>`);
-        lines.push(`        <GeometryDrawing.Geometry>`);
-        lines.push(`          <EllipseGeometry Center="${center}" RadiusX="${rx}" RadiusY="${ry}" />`);
-        lines.push(`        </GeometryDrawing.Geometry>`);
-        appendPen(lines, entry);
-        lines.push(`      </GeometryDrawing>`);
-      } else {
-        lines.push(`      <GeometryDrawing ${attrs.join(' ')}>`);
-        lines.push(`        <GeometryDrawing.Geometry>`);
-        lines.push(`          <EllipseGeometry Center="${center}" RadiusX="${rx}" RadiusY="${ry}" />`);
-        lines.push(`        </GeometryDrawing.Geometry>`);
-        lines.push(`      </GeometryDrawing>`);
-      }
+      children.push('        <GeometryDrawing.Geometry>');
+      children.push(`          <EllipseGeometry Center="${center}" RadiusX="${rx}" RadiusY="${ry}" />`);
+      children.push('        </GeometryDrawing.Geometry>');
     } else if (entry.geometryType === 'RectangleGeometry') {
       const rect = entry.geometryAttrs['Rect'] || '0,0,1,1';
-
-      lines.push(`      <GeometryDrawing ${attrs.join(' ')}>`);
-      lines.push(`        <GeometryDrawing.Geometry>`);
-      lines.push(`          <RectangleGeometry Rect="${rect}" />`);
-      lines.push(`        </GeometryDrawing.Geometry>`);
-      if (entry.stroke) appendPen(lines, entry);
-      lines.push(`      </GeometryDrawing>`);
+      children.push('        <GeometryDrawing.Geometry>');
+      children.push(`          <RectangleGeometry Rect="${rect}" />`);
+      children.push('        </GeometryDrawing.Geometry>');
     } else if (entry.data) {
-      const geoData = withFillRule(entry.data, entry.fillRule);
-      if (entry.stroke) {
-        attrs.push(`Geometry="${geoData}"`);
-        lines.push(`      <GeometryDrawing ${attrs.join(' ')}>`);
-        appendPen(lines, entry);
-        lines.push(`      </GeometryDrawing>`);
-      } else {
-        attrs.push(`Geometry="${geoData}"`);
-        lines.push(`      <GeometryDrawing ${attrs.join(' ')} />`);
+      attrs.push(`Geometry="${withFillRule(entry.data, entry.fillRule)}"`);
+    } else {
+      continue;
+    }
+
+    // Gradient fill → <GeometryDrawing.Brush>
+    if (fillIsGradient) {
+      const info = result.gradients?.get(gradientRefId(entry.fill!)!);
+      if (info) {
+        children.push('        <GeometryDrawing.Brush>');
+        children.push(...gradientBrushLines(info, '', '          '));
+        children.push('        </GeometryDrawing.Brush>');
       }
+      // 找不到定義（例如 pattern）→ 不加 Brush，該形狀不上色而非丟出無效 XAML
+    }
+
+    // Stroke → Pen
+    if (entry.stroke) {
+      appendPen(children, entry, result.gradients);
+    }
+
+    if (children.length === 0) {
+      lines.push(`      <GeometryDrawing ${attrs.join(' ')} />`);
+    } else {
+      lines.push(`      <GeometryDrawing ${attrs.join(' ')}>`);
+      lines.push(...children);
+      lines.push('      </GeometryDrawing>');
     }
   }
 
@@ -76,17 +80,38 @@ export function generateDrawingImageXaml(result: GeometryResult, filename: strin
   return lines.join('\n');
 }
 
-function appendPen(lines: string[], entry: { stroke: string | null; strokeThickness: string | null; strokeStartLineCap: string | null; strokeEndLineCap: string | null; strokeLineJoin: string | null; strokeMiterLimit: string | null }): void {
+interface PenEntry {
+  stroke: string | null;
+  strokeThickness: string | null;
+  strokeStartLineCap: string | null;
+  strokeEndLineCap: string | null;
+  strokeLineJoin: string | null;
+  strokeMiterLimit: string | null;
+}
+
+function appendPen(lines: string[], entry: PenEntry, gradients: GeometryResult['gradients']): void {
   if (!entry.stroke) return;
 
-  const penAttrs: string[] = [`Brush="${entry.stroke}"`];
+  const strokeIsGradient = isGradientRef(entry.stroke);
+  const penAttrs: string[] = [];
+  if (!strokeIsGradient) penAttrs.push(`Brush="${entry.stroke}"`);
   if (entry.strokeThickness) penAttrs.push(`Thickness="${entry.strokeThickness}"`);
   if (entry.strokeStartLineCap) penAttrs.push(`StartLineCap="${entry.strokeStartLineCap}"`);
   if (entry.strokeEndLineCap) penAttrs.push(`EndLineCap="${entry.strokeEndLineCap}"`);
   if (entry.strokeLineJoin) penAttrs.push(`LineJoin="${entry.strokeLineJoin}"`);
   if (entry.strokeMiterLimit) penAttrs.push(`MiterLimit="${entry.strokeMiterLimit}"`);
 
-  lines.push(`        <GeometryDrawing.Pen>`);
-  lines.push(`          <Pen ${penAttrs.join(' ')} />`);
-  lines.push(`        </GeometryDrawing.Pen>`);
+  const gradInfo = strokeIsGradient ? gradients?.get(gradientRefId(entry.stroke)!) : undefined;
+
+  lines.push('        <GeometryDrawing.Pen>');
+  if (gradInfo) {
+    lines.push(`          <Pen ${penAttrs.join(' ')}>`);
+    lines.push('            <Pen.Brush>');
+    lines.push(...gradientBrushLines(gradInfo, '', '              '));
+    lines.push('            </Pen.Brush>');
+    lines.push('          </Pen>');
+  } else {
+    lines.push(`          <Pen ${penAttrs.join(' ')} />`);
+  }
+  lines.push('        </GeometryDrawing.Pen>');
 }

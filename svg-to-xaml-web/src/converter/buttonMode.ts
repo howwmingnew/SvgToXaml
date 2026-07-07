@@ -1,6 +1,6 @@
 import type { GeometryResult } from '../types';
 import { validateName, withFillRule } from './xamlFormatter';
-import { generateResourceKey, collectBrush } from './geometryMode';
+import { generateResourceKey, collectBrush, emitBrushResource } from './geometryMode';
 
 /**
  * Generate Button-mode XAML output.
@@ -59,7 +59,7 @@ export function generateButtonXaml(result: GeometryResult, filename: string): st
 
   // Brush resources
   for (const [color, brushKey] of brushMap) {
-    lines.push(`<SolidColorBrush x:Key="${brushKey}" Color="${color}" />`);
+    emitBrushResource(lines, color, brushKey, result.gradients);
   }
 
   // 取「第一個有顏色」的 brush key 當 Trigger 顏色 placeholder

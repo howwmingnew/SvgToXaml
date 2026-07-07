@@ -1,5 +1,28 @@
 import type { GeometryEntry, GeometryResult } from '../types';
 import { validateName, withFillRule } from './xamlFormatter';
+import { isGradientRef, gradientRefId, gradientBrushLines } from './gradients';
+
+/**
+ * 輸出一個筆刷資源。漸層參照 (url(#id)) → LinearGradientBrush/RadialGradientBrush；
+ * 純色 → SolidColorBrush。找不到定義的參照（例如 pattern）退回透明，避免無效 XAML。
+ */
+export function emitBrushResource(
+  lines: string[],
+  color: string,
+  brushKey: string,
+  gradients: GeometryResult['gradients'],
+): void {
+  if (isGradientRef(color)) {
+    const info = gradients?.get(gradientRefId(color)!);
+    if (info) {
+      lines.push(...gradientBrushLines(info, `x:Key="${brushKey}"`, ''));
+      return;
+    }
+    lines.push(`<SolidColorBrush x:Key="${brushKey}" Color="#00000000" />`);
+    return;
+  }
+  lines.push(`<SolidColorBrush x:Key="${brushKey}" Color="${color}" />`);
+}
 
 /**
  * Generate resource key name with automatic color and shape hints.
@@ -108,7 +131,7 @@ export function generateGeometryXaml(result: GeometryResult, filename: string): 
 
   // Brush resources
   for (const [color, brushKey] of brushMap) {
-    lines.push(`<SolidColorBrush x:Key="${brushKey}" Color="${color}" />`);
+    emitBrushResource(lines, color, brushKey, result.gradients);
   }
 
   // Style
