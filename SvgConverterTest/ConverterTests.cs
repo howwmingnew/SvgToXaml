@@ -299,6 +299,30 @@ namespace SvgConverterTest
             geo.Should().Contain("F1 ", "geometry XAML 必須保留 Nonzero FillRule 前綴，否則含重疊 sub-path 的 icon 會渲染破洞");
         }
 
+        /// <summary>
+        /// 迴歸測試：帶漸層填色 (fill="url(#...)") 的 icon，Geometry/Button 模式必須輸出
+        /// LinearGradientBrush 資源，且對應 Path 要有 Fill 參照。
+        /// 舊 bug：ParseGeometryDrawing 遇到漸層 brush 只設 IsComplex、Fill 留 null，
+        /// 導致該 Path 沒有 Fill → 漸層形狀在 WPF 完全畫不出來（DrawingImage 模式正常，故容易誤判）。
+        /// ico_boneGraft.svg 的植體底片用 linearGradient，是此 bug 的復現案例。
+        /// </summary>
+        [Test, STAThread]
+        public void GeometryData_EmitsGradientBrush_ForGradientFill()
+        {
+            var data = ConverterLogic.ConvertSvg("TestFiles\\ico_boneGraft.svg", ResultMode.DrawingImage);
+            var geo = data.GeometryData;
+
+            geo.Should().NotBeNullOrEmpty();
+            geo.Should().Contain("LinearGradientBrush", "漸層填色必須輸出 LinearGradientBrush 資源，而非遺失");
+            geo.Should().NotContain("Color=\"url(", "url(#...) 不可被當成純色 Color 輸出");
+            // 漸層 brush 資源要有 x:Key，且被某個 Path 以 StaticResource 參照到
+            geo.Should().MatchRegex("<LinearGradientBrush x:Key=\"[^\"]+\"");
+
+            var button = data.ButtonData;
+            button.Should().Contain("LinearGradientBrush");
+            button.Should().NotContain("Color=\"url(");
+        }
+
         [Test]
         public void GetCorrectClippingElement()
         {

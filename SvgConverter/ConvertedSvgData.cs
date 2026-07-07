@@ -135,7 +135,7 @@ namespace SvgConverter
                 foreach (var kvp in brushMap)
                 {
                     if (tokenColors.Contains(kvp.Key)) continue;
-                    lines.Add(string.Format("<SolidColorBrush x:Key=\"{0}\" Color=\"{1}\" />", kvp.Value, kvp.Key));
+                    EmitBrushResource(lines, kvp.Key, kvp.Value);
                 }
 
                 // --- Style ---
@@ -264,7 +264,7 @@ namespace SvgConverter
                 foreach (var kvp in brushMap)
                 {
                     if (tokenColors.Contains(kvp.Key)) continue;
-                    lines.Add(string.Format("<SolidColorBrush x:Key=\"{0}\" Color=\"{1}\" />", kvp.Value, kvp.Key));
+                    EmitBrushResource(lines, kvp.Key, kvp.Value);
                 }
 
                 // 取第一支 brush 當 Trigger 顏色 placeholder（先用相同顏色）
@@ -356,6 +356,24 @@ namespace SvgConverter
                 lines.Add("</Style>");
 
                 return string.Join("\n", lines);
+            }
+        }
+
+        /// <summary>
+        /// 輸出一筆 brush 資源。key 以 '&lt;' 開頭代表是漸層 XAML（由 ParseGeometryDrawing 保存），
+        /// 插入 x:Key 後原樣輸出；否則輸出 SolidColorBrush。
+        /// </summary>
+        private static void EmitBrushResource(List<string> lines, string colorOrXaml, string brushName)
+        {
+            if (colorOrXaml.StartsWith("<"))
+            {
+                var withKey = System.Text.RegularExpressions.Regex.Replace(
+                    colorOrXaml, @"^(<\w+)", "$1 x:Key=\"" + brushName + "\"");
+                lines.Add(withKey);
+            }
+            else
+            {
+                lines.Add(string.Format("<SolidColorBrush x:Key=\"{0}\" Color=\"{1}\" />", brushName, colorOrXaml));
             }
         }
 

@@ -564,10 +564,18 @@ namespace SvgConverter
                 var solidBrush = brushChild.Elements().FirstOrDefault(e => e.Name.LocalName == "SolidColorBrush");
                 if (solidBrush != null)
                     entry.Fill = solidBrush.Attribute("Color")?.Value;
-                if (brushChild.Elements().Any(e =>
+
+                // 漸層填色：保存完整 LinearGradientBrush/RadialGradientBrush XAML，
+                // 供 Geometry/Button 模式輸出成漸層資源。舊版只設 isComplex、Fill 留 null，
+                // 導致 Path 沒有 Fill → 該形狀在 WPF 完全畫不出來。
+                var gradientBrush = brushChild.Elements().FirstOrDefault(e =>
                     e.Name.LocalName == "LinearGradientBrush" ||
-                    e.Name.LocalName == "RadialGradientBrush"))
+                    e.Name.LocalName == "RadialGradientBrush");
+                if (gradientBrush != null)
+                {
+                    entry.Fill = SerializeBrushElement(gradientBrush);
                     isComplex = true;
+                }
             }
 
             // --- 解析 Pen (Stroke) ---
@@ -583,6 +591,20 @@ namespace SvgConverter
                     entry.StrokeEndLineCap = pen.Attribute("EndLineCap")?.Value;
                     entry.StrokeLineJoin = pen.Attribute("LineJoin")?.Value;
                     entry.StrokeMiterLimit = pen.Attribute("MiterLimit")?.Value;
+
+                    // 漸層線條（罕見）：Pen 沒有 Brush 屬性但帶 <Pen.Brush> 漸層子元素時同樣保存
+                    if (entry.Stroke == null)
+                    {
+                        var penBrushChild = pen.Elements().FirstOrDefault(e => e.Name.LocalName == "Pen.Brush");
+                        var gradientStroke = penBrushChild?.Elements().FirstOrDefault(e =>
+                            e.Name.LocalName == "LinearGradientBrush" ||
+                            e.Name.LocalName == "RadialGradientBrush");
+                        if (gradientStroke != null)
+                        {
+                            entry.Stroke = SerializeBrushElement(gradientStroke);
+                            isComplex = true;
+                        }
+                    }
                 }
             }
 
@@ -591,6 +613,17 @@ namespace SvgConverter
                 return null;
 
             return entry;
+        }
+
+        /// <summary>
+        /// 把漸層 Brush 元素序列化成乾淨的 XAML 片段（移除 xmlns 宣告，輸出片段已隱含在 presentation namespace）。
+        /// 回傳字串以 '&lt;' 開頭，供輸出端辨識「這是漸層而非純色」並改產漸層資源。
+        /// </summary>
+        private static string SerializeBrushElement(XElement brush)
+        {
+            var xaml = brush.ToString(SaveOptions.None);
+            xaml = Regex.Replace(xaml, "\\s+xmlns(:[\\w]+)?=\"[^\"]*\"", "");
+            return xaml;
         }
 
         /// <summary>
