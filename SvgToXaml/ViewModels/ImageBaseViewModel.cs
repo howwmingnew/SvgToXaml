@@ -17,6 +17,7 @@ namespace SvgToXaml.ViewModels
             Filepath = filepath;
             OpenDetailCommand = new DelegateCommand(OpenDetailExecute);
             OpenFileCommand = new DelegateCommand(OpenFileExecute);
+            RevealInExplorerCommand = new DelegateCommand(RevealInExplorerExecute);
             CopyXamlCommand = new DelegateCommand(CopyXamlExecute, () => HasXaml);
         }
 
@@ -25,6 +26,7 @@ namespace SvgToXaml.ViewModels
         public ImageSource PreviewSource => GetImageSource();
         public ICommand OpenDetailCommand { get; set; }
         public ICommand OpenFileCommand { get; set; }
+        public ICommand RevealInExplorerCommand { get; set; }
         public ICommand CopyXamlCommand { get; set; }
         protected abstract ImageSource GetImageSource();
         public abstract bool HasXaml { get; }
@@ -47,6 +49,13 @@ namespace SvgToXaml.ViewModels
         private void OpenFileExecute()
         {
             Process.Start(Filepath);
+        }
+
+        private void RevealInExplorerExecute()
+        {
+            if (string.IsNullOrEmpty(Filepath)) return;
+            // 開啟檔案總管並選取該檔案（路徑需加引號，逗號後不可有空白）
+            Process.Start("explorer.exe", "/select,\"" + Filepath + "\"");
         }
 
         protected virtual void CopyXamlExecute()

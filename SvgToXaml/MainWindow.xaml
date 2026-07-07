@@ -321,6 +321,10 @@
                                         Command="{Binding OpenFileCommand}"
                                         Header="{DynamicResource S.Menu.OpenFile}"
                                         Style="{StaticResource DarkMenuItemStyle}" />
+                                    <MenuItem
+                                        Command="{Binding RevealInExplorerCommand}"
+                                        Header="{DynamicResource S.Menu.RevealInExplorer}"
+                                        Style="{StaticResource DarkMenuItemStyle}" />
                                 </ContextMenu>
                             </Grid.ContextMenu>
                         </Grid>

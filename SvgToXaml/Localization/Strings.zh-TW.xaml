@@ -15,6 +15,7 @@
     <sys:String x:Key="S.Menu.CopyXaml">複製 XAML</sys:String>
     <sys:String x:Key="S.Menu.ViewDetail">檢視詳細</sys:String>
     <sys:String x:Key="S.Menu.OpenFile">開啟檔案</sys:String>
+    <sys:String x:Key="S.Menu.RevealInExplorer">在檔案總管中顯示</sys:String>
     <sys:String x:Key="S.Menu.OpenExplorer">開啟檔案總管</sys:String>
 
     <!-- Toast -->

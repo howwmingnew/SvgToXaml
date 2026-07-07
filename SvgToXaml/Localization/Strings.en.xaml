@@ -15,6 +15,7 @@
     <sys:String x:Key="S.Menu.CopyXaml">Copy XAML</sys:String>
     <sys:String x:Key="S.Menu.ViewDetail">View Detail</sys:String>
     <sys:String x:Key="S.Menu.OpenFile">Open File</sys:String>
+    <sys:String x:Key="S.Menu.RevealInExplorer">Reveal in File Explorer</sys:String>
     <sys:String x:Key="S.Menu.OpenExplorer">Open Explorer</sys:String>
 
     <!-- Toast -->
